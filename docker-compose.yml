@@ -1,6 +1,7 @@
 services:
   db:
     build: ./docker/development
+    container_name: postgresql
     env_file:
       - .env
     environment:
