@@ -2,31 +2,33 @@ package main
 
 import (
 	// "article/internal/handler"
-	// "errors"
+	"article/internal/services"
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
+
+	"database/sql"
+	_ "github.com/lib/pq"
 )
 
-func register(w http.ResponseWriter, r *http.Request) {
-	password := "mySecurePassword"
-
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+func main() {
+	connStr := "postgres://pqgotest:password@localhost/pqgotest?sslmode=verify-full"
+	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal(err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
 	}
 
-	fmt.Printf("%s", hashedPassword)
-	w.Write([]byte(hashedPassword))
-}
+	rows, err := db.Query("SELECT name FROM users WHERE age = $1", 2)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
 
-func main() {
+	fmt.Println(rows)
+
 	router := http.NewServeMux()
 
-	router.HandleFunc("POST /auth/register", register)
+	router.HandleFunc("POST /auth/register", services.Register)
 
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
