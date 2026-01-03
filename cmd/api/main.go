@@ -3,7 +3,6 @@ package main
 import (
 	// "article/internal/handler"
 	"article/internal/services"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -28,17 +27,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	rows, err := db.Query("SELECT name FROM users WHERE age = $1", 2)
-	if err != nil {
-		log.Fatal(err)
+	authHandler := &services.AuthHandler{
+		DB: db,
 	}
-	defer rows.Close()
-
-	fmt.Println(rows)
-
+	
+	// initiate route
 	router := http.NewServeMux()
 
-	router.HandleFunc("POST /auth/register", services.Register)
-
+	router.HandleFunc("POST /auth/register", authHandler.Register)
+	
+	// server listen
 	log.Fatal(http.ListenAndServe(":8000", router))
 }

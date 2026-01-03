@@ -5,14 +5,19 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
+	"database/sql"
 )
 
-func Register(w http.ResponseWriter, r *http.Request) {
+type AuthHandler struct {
+    DB *sql.DB
+}
+
+func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	password := "mySecurePassword"
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
