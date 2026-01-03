@@ -5,12 +5,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
-	"database/sql"
 )
 
-type AuthHandler struct {
-    DB *sql.DB
-}
 
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	password := "mySecurePassword"
