@@ -1,5 +1,5 @@
 package handler
 
-func SetupRouter(){
+func SetupRouter() {
 
 }

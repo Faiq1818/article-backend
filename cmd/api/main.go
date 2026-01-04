@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"database/sql"
+	"github.com/go-playground/validator/v10"
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -27,15 +28,18 @@ func main() {
 		log.Fatal(err)
 	}
 
+	validate := validator.New()
+
 	authHandler := &services.AuthHandler{
-		DB: db,
+		DB:       db,
+		Validate: validate,
 	}
-	
+
 	// initiate route
 	router := http.NewServeMux()
 
 	router.HandleFunc("POST /auth/register", authHandler.Register)
-	
+
 	// server listen
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
