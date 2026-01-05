@@ -38,7 +38,9 @@ func main() {
 	// initiate route
 	router := http.NewServeMux()
 
+	// routes
 	router.HandleFunc("POST /auth/register", authHandler.Register)
+	router.HandleFunc("POST /auth/login", authHandler.Login)
 
 	// server listen
 	log.Fatal(http.ListenAndServe(":8000", router))
