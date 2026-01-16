@@ -4,8 +4,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"os"
+	"time"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 
 	"log"
@@ -65,8 +68,31 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// making the jwt
+	key := []byte(os.Getenv("JWT_SECRET"))
+	t := jwt.NewWithClaims(jwt.SigningMethodHS256,
+		jwt.MapClaims{
+			"role": "admin",
+			"name": "Faiq",
+			"exp": time.Now().Add(24 * time.Hour).Unix(),
+		})
+
+	s, err := t.SignedString(key)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(500)
+		w.Write([]byte(`{"message":"Error saat membuat token"}`))
+		fmt.Println(err)
+		return
+	}
+
 	// response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
-	w.Write([]byte(`{"message":"Berhasil", "success": true}`))
+	res := map[string]any{
+		"message": "Berhasil login",
+		"jwt":    s,
+	}
+	jsonData, _ := json.Marshal(res)
+	w.Write(jsonData)
 }
