@@ -1,4 +1,4 @@
-package services
+package article
 
 import (
 	"database/sql"
@@ -9,8 +9,3 @@ type AuthHandler struct {
 	DB       *sql.DB
 	Validate *validator.Validate
 }
-
-// type ErrorResponse struct {
-// 	Field   string `json:"field"`
-// 	Message string `json:"message"`
-// }

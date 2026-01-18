@@ -1,4 +1,4 @@
-package services
+package auth
 
 import (
 	"database/sql"
@@ -6,13 +6,12 @@ import (
 	"fmt"
 	"os"
 	"time"
+	"log"
+	"net/http"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
-
-	"log"
-	"net/http"
 )
 
 // body

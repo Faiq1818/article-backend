@@ -1,8 +1,8 @@
 package main
 
 import (
-	// "article/internal/handler"
-	"article/internal/services"
+	"article/internal/services/auths"
+	"article/internal/services/articles"
 	"log"
 	"net/http"
 	"os"
@@ -30,7 +30,12 @@ func main() {
 
 	validate := validator.New()
 
-	authHandler := &services.AuthHandler{
+	authHandler := &auth.AuthHandler{
+		DB:       db,
+		Validate: validate,
+	}
+
+	articleHandler := &article.AuthHandler{
 		DB:       db,
 		Validate: validate,
 	}
@@ -41,6 +46,8 @@ func main() {
 	// routes
 	router.HandleFunc("POST /auth/register", authHandler.Register)
 	router.HandleFunc("POST /auth/login", authHandler.Login)
+
+	router.HandleFunc("POST /article", articleHandler.SaveArticle)
 
 	// server listen
 	log.Fatal(http.ListenAndServe(":8000", router))
