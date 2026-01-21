@@ -1,15 +1,17 @@
 package handler
 
 import (
+	"article/internal/services/articles"
+	"article/internal/services/auths"
+
 	"database/sql"
 	"net/http"
+
 	"github.com/go-playground/validator/v10"
-	"article/internal/services/auths"
-	"article/internal/services/articles"
 )
 
 func SetupRoutes(db *sql.DB, validate *validator.Validate) *http.ServeMux {
-	// auth handler
+	// Dependency Injection
 	authHandler := &auth.AuthHandler{
 		DB:       db,
 		Validate: validate,
@@ -32,4 +34,3 @@ func SetupRoutes(db *sql.DB, validate *validator.Validate) *http.ServeMux {
 
 	return router
 }
-

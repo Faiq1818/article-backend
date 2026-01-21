@@ -1,15 +1,14 @@
 package main
 
 import (
-	handler "article/internal/handlers"
+	"article/internal/handlers"
+
+	"database/sql"
 	"log"
 	"net/http"
 	"os"
 
-	"database/sql"
-
 	"github.com/go-playground/validator/v10"
-
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
