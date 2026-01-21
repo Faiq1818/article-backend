@@ -1,0 +1,35 @@
+package handler
+
+import (
+	"database/sql"
+	"net/http"
+	"github.com/go-playground/validator/v10"
+	"article/internal/services/auths"
+	"article/internal/services/articles"
+)
+
+func SetupRoutes(db *sql.DB, validate *validator.Validate) *http.ServeMux {
+	// auth handler
+	authHandler := &auth.AuthHandler{
+		DB:       db,
+		Validate: validate,
+	}
+	articleHandler := &article.AuthHandler{
+		DB:       db,
+		Validate: validate,
+	}
+
+	// initiate route
+	router := http.NewServeMux()
+
+	// routes
+	// routes/auth
+	router.HandleFunc("POST /auth/register", authHandler.Register)
+	router.HandleFunc("POST /auth/login", authHandler.Login)
+
+	// routes/article
+	router.HandleFunc("POST /article", articleHandler.SaveArticle)
+
+	return router
+}
+

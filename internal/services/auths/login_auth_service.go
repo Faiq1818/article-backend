@@ -45,14 +45,14 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(400)
-			w.Write([]byte(`{"message":"User tidak ditemukan", "success": false}`))
+			w.WriteHeader(204)
+			w.Write([]byte(`{"message":"User tidak ditemukan"}`))
 			log.Printf("No user: %v", err)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(400)
-		w.Write([]byte(`{"message":"Database error", "success": false}`))
+		w.WriteHeader(500)
+		w.Write([]byte(`{"message":"Database error"}`))
 		log.Printf("Database scan error: %v", err)
 		return
 	}
@@ -62,7 +62,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(400)
-		w.Write([]byte(`{"message":"Password salah", "success": false}`))
+		w.Write([]byte(`{"message":"Password salah"}`))
 		fmt.Println(err)
 		return
 	}
