@@ -31,6 +31,7 @@ func SetupRoutes(db *sql.DB, validate *validator.Validate) *http.ServeMux {
 
 	// routes/article
 	router.HandleFunc("POST /article", articleHandler.SaveArticle)
+	router.HandleFunc("GET /article", articleHandler.GetArticle)
 
 	return router
 }
