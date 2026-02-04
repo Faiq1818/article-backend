@@ -4,10 +4,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"os"
-	"time"
 	"log"
 	"net/http"
+	"os"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v5"
@@ -73,7 +73,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		jwt.MapClaims{
 			"role": "admin",
 			"name": "Faiq",
-			"exp": time.Now().Add(24 * time.Hour).Unix(),
+			"exp":  time.Now().Add(24 * time.Hour).Unix(),
 		})
 
 	s, err := t.SignedString(key)
@@ -90,7 +90,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 	res := map[string]any{
 		"message": "Berhasil login",
-		"jwt":    s,
+		"jwt":     s,
 	}
 	jsonData, _ := json.Marshal(res)
 	w.Write(jsonData)

@@ -35,7 +35,7 @@ func (h *AuthHandler) SaveArticle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// generate a slug
-	slug := strings.ReplaceAll(req.Title, " ", "_")
+	slug := strings.ReplaceAll(req.Title, " ", "-")
 	slug = strings.ToLower(slug)
 
 	u := uuid.New()
