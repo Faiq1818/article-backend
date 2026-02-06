@@ -3,6 +3,7 @@ package handler
 import (
 	"article/internal/services/articles"
 	"article/internal/services/auths"
+	"article/internal/services/clientArticles"
 
 	"database/sql"
 	"net/http"
@@ -20,6 +21,10 @@ func SetupRoutes(db *sql.DB, validate *validator.Validate) *http.ServeMux {
 		DB:       db,
 		Validate: validate,
 	}
+	clientArticleHandler := &clientarticles.AuthHandler{
+		DB:       db,
+		Validate: validate,
+	}
 
 	// initiate route
 	router := http.NewServeMux()
@@ -32,6 +37,9 @@ func SetupRoutes(db *sql.DB, validate *validator.Validate) *http.ServeMux {
 	// routes/article
 	router.HandleFunc("POST /article", articleHandler.SaveArticle)
 	router.HandleFunc("GET /article", articleHandler.GetArticle)
+
+	// routes/client/article
+	router.HandleFunc("GET /client/article", clientArticleHandler.GetClientArticle)
 
 	return router
 }
