@@ -5,7 +5,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-type AuthHandler struct {
+type Handler struct {
 	DB       *sql.DB
 	Validate *validator.Validate
 }

@@ -17,7 +17,7 @@ type RegisterRequest struct {
 	Password string `json:"password" validate:"required,min=6"`
 }
 
-func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	// decode body
 	var req RegisterRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
