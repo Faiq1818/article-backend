@@ -44,7 +44,7 @@ func main() {
 
 	// validator initiate
 	validate := validator.New()
-	mux := handler.SetupRoutes(db, validate)
+	mux := handlers.SetupRoutes(db, validate)
 
 	// server listen
 	log.Fatal(http.ListenAndServe(":8000", CORSMiddleware(mux)))

@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func (h *AuthHandler) GetArticle(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetArticle(w http.ResponseWriter, r *http.Request) {
 	// get url params
 	queryParams := r.URL.Query()
 

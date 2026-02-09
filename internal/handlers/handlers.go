@@ -1,4 +1,4 @@
-package handler
+package handlers
 
 import (
 	"article/internal/services/articles"
@@ -12,11 +12,11 @@ import (
 
 func SetupRoutes(db *sql.DB, validate *validator.Validate) *http.ServeMux {
 	// Dependency Injection
-	authHandler := &auth.Handler{
+	authHandler := &auths.Handler{
 		DB:       db,
 		Validate: validate,
 	}
-	articleHandler := &article.AuthHandler{
+	articleHandler := &article.Handler{
 		DB:       db,
 		Validate: validate,
 	}

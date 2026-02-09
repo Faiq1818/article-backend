@@ -1,4 +1,4 @@
-package handler
+package handlers
 
 import (
 	"net/http"
@@ -6,7 +6,7 @@ import (
 	"article/internal/services/auths"
 )
 
-func AuthsHandler(router *http.ServeMux, authHandler *auth.Handler) {
+func AuthsHandler(router *http.ServeMux, authHandler *auths.Handler) {
 	router.HandleFunc("POST /auth/register", authHandler.Register)
 	router.HandleFunc("POST /auth/login", authHandler.Login)
 }

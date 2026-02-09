@@ -1,4 +1,4 @@
-package handler
+package handlers
 
 import (
 	"net/http"
@@ -6,7 +6,7 @@ import (
 	"article/internal/services/articles"
 )
 
-func ArticlesHandler(router *http.ServeMux, articleHandler *article.AuthHandler) {
+func ArticlesHandler(router *http.ServeMux, articleHandler *article.Handler) {
 	router.HandleFunc("POST /article", articleHandler.SaveArticle)
 	router.HandleFunc("GET /article", articleHandler.GetArticle)
 }

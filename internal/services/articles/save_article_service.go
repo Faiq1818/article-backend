@@ -17,7 +17,7 @@ type SaveArticleRequest struct {
 	Content string `json:"content" validate:"required"`
 }
 
-func (h *AuthHandler) SaveArticle(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) SaveArticle(w http.ResponseWriter, r *http.Request) {
 	// decode body
 	var req SaveArticleRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
