@@ -8,6 +8,7 @@ import (
 type Response struct {
 	Message string `json:"message"`
 	Success bool   `json:"success"`
+	Data    any    `json:"data,omitempty"`
 }
 
 func JSONResponse(w http.ResponseWriter, status int, data any) {

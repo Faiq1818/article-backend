@@ -31,6 +31,7 @@ func (DI *Dependency_Injection) Register(inject *auths.Handler) http.HandlerFunc
 			return
 		}
 
+		// bussiness logic
 		err = inject.Register(req)
 		if err != nil {
 			var appErr *pkg.AppError
@@ -50,6 +51,7 @@ func (DI *Dependency_Injection) Register(inject *auths.Handler) http.HandlerFunc
 			return
 		}
 
+		// success response
 		pkg.JSONResponse(w, http.StatusOK, pkg.Response{
 			Message: "Akun berhasil dibuat",
 			Success: true,
@@ -76,6 +78,7 @@ func (DI *Dependency_Injection) Login(inject *auths.Handler) http.HandlerFunc {
 			return
 		}
 
+		// bussiness logic
 		err = inject.Login(req)
 		if err != nil {
 			var appErr *pkg.AppError
@@ -95,10 +98,10 @@ func (DI *Dependency_Injection) Login(inject *auths.Handler) http.HandlerFunc {
 			return
 		}
 
+		// success response
 		pkg.JSONResponse(w, http.StatusOK, pkg.Response{
 			Message: "Akun berhasil dibuat",
 			Success: true,
 		})
-
 	}
 }

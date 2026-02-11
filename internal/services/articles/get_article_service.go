@@ -1,28 +1,22 @@
 package article
 
 import (
-	"encoding/json"
 	"log"
-	"net/http"
-	"strconv"
 )
 
-func (h *Handler) GetArticle(w http.ResponseWriter, r *http.Request) {
-	// get url params
-	queryParams := r.URL.Query()
+type Article struct {
+	ID      string `json:"id"`
+	Slug    string `json:"slug"`
+	Title   string `json:"title"`
+	Content string `json:"content"`
+}
 
-	// convert limit and page params to integer
-	limit, err := strconv.Atoi(queryParams.Get("limit"))
-	if err != nil {
-		http.Error(w, "invalid limit", http.StatusBadRequest)
-		return
-	}
+type ArticleResponse struct {
+	Message string    `json:"message"`
+	Data    []Article `json:"data"`
+}
 
-	page, err := strconv.Atoi(queryParams.Get("page"))
-	if err != nil || page < 1 {
-		http.Error(w, "invalid page", http.StatusBadRequest)
-		return
-	}
+func (h *Handler) GetArticle(page int, limit int) ([]Article, error) {
 
 	// making the offset
 	offset := (page - 1) * limit
@@ -33,13 +27,6 @@ func (h *Handler) GetArticle(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 	defer articleData.Close()
-
-	type Article struct {
-		ID      string `json:"id"`
-		Slug    string `json:"slug"`
-		Title   string `json:"title"`
-		Content string `json:"content"`
-	}
 
 	// build the response
 	var articles []Article
@@ -55,18 +42,5 @@ func (h *Handler) GetArticle(w http.ResponseWriter, r *http.Request) {
 		articles = append(articles, article)
 	}
 
-	type ArticleResponse struct {
-		Message string    `json:"message"`
-		Data    []Article `json:"data"`
-	}
-
-	response := ArticleResponse{
-		Message: "Article berhasil dibuat",
-		Data:    articles,
-	}
-
-	// write and send the response
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	return articles, nil
 }
