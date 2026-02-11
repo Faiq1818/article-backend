@@ -10,23 +10,28 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func SetupRoutes(db *sql.DB, validate *validator.Validate) *http.ServeMux {
+type Dependency_Injection struct {
+	DB       *sql.DB
+	Validate *validator.Validate
+}
+
+func (DI *Dependency_Injection) SetupRoutes() *http.ServeMux {
 	// Dependency Injection
-	authHandler := &auths.Handler{
-		DB:       db,
-		Validate: validate,
+	authInject := &auths.Handler{
+		DB:       DI.DB,
+		Validate: DI.Validate,
 	}
-	articleHandler := &article.Handler{
-		DB:       db,
-		Validate: validate,
+	articleInject := &article.Handler{
+		DB:       DI.DB,
+		Validate: DI.Validate,
 	}
 
 	// initiate route
 	router := http.NewServeMux()
 
 	// routes
-	AuthsHandler(router, authHandler)
-	ArticlesHandler(router, articleHandler)
+	DI.AuthsHandler(router, authInject)
+	ArticlesHandler(router, articleInject)
 
 	return router
 }

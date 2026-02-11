@@ -44,7 +44,13 @@ func main() {
 
 	// validator initiate
 	validate := validator.New()
-	mux := handlers.SetupRoutes(db, validate)
+
+	handlers := &handlers.Dependency_Injection{
+		DB:       db,
+		Validate: validate,
+	}
+
+	mux := handlers.SetupRoutes()
 
 	// server listen
 	log.Fatal(http.ListenAndServe(":8000", CORSMiddleware(mux)))
