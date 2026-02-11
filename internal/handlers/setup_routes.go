@@ -30,7 +30,8 @@ func (DI *Dependency_Injection) SetupRoutes() *http.ServeMux {
 	router := http.NewServeMux()
 
 	// routes
-	DI.AuthsHandler(router, authInject)
+	router.HandleFunc("POST /auth/register", DI.Register(authInject))
+	router.HandleFunc("POST /auth/login", DI.Login(authInject))
 	ArticlesHandler(router, articleInject)
 
 	return router

@@ -1,70 +1,49 @@
 package auths
 
 import (
+	pkg "article/internal/pkg"
+	requesttype "article/internal/request_type"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// body
-type LoginRequest struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=6"`
-}
-
-func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
-	// decode body
-	var req LoginRequest
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
-
-	// validate body
-	err = h.Validate.Struct(req)
-	if err != nil {
-		errors := err.(validator.ValidationErrors)
-		http.Error(w, fmt.Sprintf("Validation error: %s", errors), http.StatusBadRequest)
-		return
-	}
-
+func (h *Handler) Login(req requesttype.LoginRequest) error {
 	// query get user data from req.email
 	userData := h.DB.QueryRow("SELECT id, name, email, password FROM users WHERE email = ($1);", req.Email)
 
 	var id, name, email, password string
-	err = userData.Scan(&id, &name, &email, &password)
+	err := userData.Scan(&id, &name, &email, &password)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(204)
-			w.Write([]byte(`{"message":"User tidak ditemukan"}`))
 			log.Printf("No user: %v", err)
-			return
+			return &pkg.AppError{
+				Message: "User tidak ditemukan",
+				Code:    400,
+				Err:     err,
+			}
 		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(500)
-		w.Write([]byte(`{"message":"Database error"}`))
 		log.Printf("Database scan error: %v", err)
-		return
+		return &pkg.AppError{
+			Message: "Database error",
+			Code:    500,
+			Err:     err,
+		}
 	}
 
 	// check and compare password
 	err = bcrypt.CompareHashAndPassword([]byte(password), []byte(req.Password))
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(400)
-		w.Write([]byte(`{"message":"Password salah"}`))
-		fmt.Println(err)
-		return
+		return &pkg.AppError{
+			Message: "Password salah",
+			Code:    400,
+			Err:     err,
+		}
 	}
 
 	// making the jwt
@@ -78,20 +57,15 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	s, err := t.SignedString(key)
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(500)
-		w.Write([]byte(`{"message":"Error saat membuat token"}`))
 		fmt.Println(err)
-		return
+		return &pkg.AppError{
+			Message: "Error saat membuat token",
+			Code:    500,
+			Err:     err,
+		}
 	}
+	_ = s
 
 	// response
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-	res := map[string]any{
-		"message": "Berhasil login",
-		"jwt":     s,
-	}
-	jsonData, _ := json.Marshal(res)
-	w.Write(jsonData)
+	return nil
 }
