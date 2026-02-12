@@ -1,7 +1,10 @@
 package article
 
 import (
+	"database/sql"
 	"log"
+
+	pkg "article/internal/pkg"
 )
 
 type Article struct {
@@ -17,7 +20,6 @@ type ArticleResponse struct {
 }
 
 func (h *Handler) GetArticle(page int, limit int) ([]Article, error) {
-
 	// making the offset
 	offset := (page - 1) * limit
 
@@ -33,14 +35,45 @@ func (h *Handler) GetArticle(page int, limit int) ([]Article, error) {
 
 	for articleData.Next() {
 		var article Article
-
 		if err := articleData.Scan(&article.ID, &article.Slug, &article.Title, &article.Content); err != nil {
 			log.Println(err)
 			continue
 		}
-
 		articles = append(articles, article)
 	}
 
 	return articles, nil
+}
+
+func (h *Handler) GetArticleSlug(slug string) (Article, error) {
+	// query select to db
+	articleData := h.DB.QueryRow("SELECT id, slug, title, content FROM article WHERE slug = $1", slug)
+
+	var article Article
+
+	err := articleData.Scan(
+		&article.ID,
+		&article.Slug,
+		&article.Title,
+		&article.Content,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Printf("No user: %v", err)
+			return Article{}, &pkg.AppError{
+				Message: "Artikel tidak ditemukan",
+				Code:    400,
+				Err:     err,
+			}
+		}
+		log.Printf("Database scan error: %v", err)
+		return Article{}, &pkg.AppError{
+			Message: "Database error",
+			Code:    500,
+			Err:     err,
+		}
+	}
+
+	return article, nil
 }

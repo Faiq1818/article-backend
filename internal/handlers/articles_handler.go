@@ -115,3 +115,44 @@ func GetArticle(inject *article.Handler) http.HandlerFunc {
 		})
 	}
 }
+
+func GetArticleSlug(inject *article.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// get slug
+		slug := r.PathValue("slug")
+		if slug == "" {
+			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+				Message: "Article slug is required",
+				Success: false,
+			})
+			return
+		}
+
+		// bussiness logic
+		articles, err := inject.GetArticleSlug(slug)
+		if err != nil {
+			var appErr *pkg.AppError
+			if errors.As(err, &appErr) {
+				pkg.JSONResponse(w, appErr.Code, pkg.Response{
+					Message: appErr.Message,
+					Success: false,
+				})
+				return
+			}
+
+			// fallback unknown error
+			pkg.JSONResponse(w, http.StatusInternalServerError, pkg.Response{
+				Message: "internal server error",
+				Success: false,
+			})
+			return
+		}
+
+		// success response
+		pkg.JSONResponse(w, http.StatusOK, pkg.Response{
+			Message: "Artikel berhasil didapat",
+			Success: true,
+			Data:    articles,
+		})
+	}
+}
