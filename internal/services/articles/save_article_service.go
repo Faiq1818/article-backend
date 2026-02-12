@@ -6,7 +6,6 @@ import (
 
 	pkg "article/internal/pkg"
 	requesttype "article/internal/request_type"
-	utils "article/internal/utils"
 
 	"github.com/google/uuid"
 )
@@ -19,7 +18,7 @@ func (h *Handler) SaveArticle(req requesttype.SaveArticleRequest) error {
 	u := uuid.New()
 	_, err := h.DB.Exec("INSERT INTO article (id, title, slug, content) VALUES ($1, $2, $3, $4);", u, req.Title, slug, req.Content)
 	if err != nil {
-		statusCode, clientMessage := utils.ParsePostgresError(err)
+		statusCode, clientMessage := pkg.ParsePostgresError(err)
 		log.Printf("Error inserting user: %v", err)
 
 		return &pkg.AppError{

@@ -1,13 +1,14 @@
 package auths
 
 import (
-	pkg "article/internal/pkg"
-	requesttype "article/internal/request_type"
 	"database/sql"
 	"fmt"
 	"log"
 	"os"
 	"time"
+
+	pkg "article/internal/pkg"
+	requesttype "article/internal/request_type"
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"

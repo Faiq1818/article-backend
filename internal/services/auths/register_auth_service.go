@@ -1,9 +1,10 @@
 package auths
 
 import (
+	"log"
+
 	pkg "article/internal/pkg"
 	requesttype "article/internal/request_type"
-	"log"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
