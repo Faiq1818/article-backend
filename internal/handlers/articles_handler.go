@@ -3,33 +3,35 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 
 	pkg "article/internal/pkg"
 	requesttype "article/internal/request_type"
 	article "article/internal/services/articles"
-
-	"github.com/go-playground/validator/v10"
 )
 
-func (DI *Dependency_Injection) SaveArticle(inject *article.Handler) http.HandlerFunc {
+func SaveArticle(inject *article.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		// decode body
 		var req requesttype.SaveArticleRequest
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
-			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+				Message: "Invalid Body",
+				Success: false,
+			})
 			return
 		}
 
 		// validate body
-		err = DI.Validate.Struct(req)
+		err = inject.Validate.Struct(req)
 		if err != nil {
-			errors := err.(validator.ValidationErrors)
-			http.Error(w, fmt.Sprintf("Validation error: %s", errors), http.StatusBadRequest)
+			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+				Message: "Validation error",
+				Success: false,
+				Data:    pkg.FormatValidationError(err),
+			})
 			return
 		}
 
@@ -61,7 +63,7 @@ func (DI *Dependency_Injection) SaveArticle(inject *article.Handler) http.Handle
 	}
 }
 
-func (DI *Dependency_Injection) GetArticle(inject *article.Handler) http.HandlerFunc {
+func GetArticle(inject *article.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// get url params
 		queryParams := r.URL.Query()
@@ -69,13 +71,19 @@ func (DI *Dependency_Injection) GetArticle(inject *article.Handler) http.Handler
 		// convert limit and page params to integer
 		limit, err := strconv.Atoi(queryParams.Get("limit"))
 		if err != nil {
-			http.Error(w, "invalid limit", http.StatusBadRequest)
+			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+				Message: "Parameter limit tidak valid",
+				Success: false,
+			})
 			return
 		}
 
 		page, err := strconv.Atoi(queryParams.Get("page"))
 		if err != nil || page < 1 {
-			http.Error(w, "invalid page", http.StatusBadRequest)
+			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+				Message: "Parameter page tidak valid",
+				Success: false,
+			})
 			return
 		}
 

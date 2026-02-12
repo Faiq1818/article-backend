@@ -13,7 +13,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func (DI *Dependency_Injection) Register(inject *auths.Handler) http.HandlerFunc {
+func Register(inject *auths.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// decode body
 		var req requesttype.RegisterRequest
@@ -24,7 +24,7 @@ func (DI *Dependency_Injection) Register(inject *auths.Handler) http.HandlerFunc
 		}
 
 		// validate body
-		err = DI.Validate.Struct(req)
+		err = inject.Validate.Struct(req)
 		if err != nil {
 			errors := err.(validator.ValidationErrors)
 			http.Error(w, fmt.Sprintf("Validation error: %s", errors), http.StatusBadRequest)
@@ -59,7 +59,7 @@ func (DI *Dependency_Injection) Register(inject *auths.Handler) http.HandlerFunc
 	}
 }
 
-func (DI *Dependency_Injection) Login(inject *auths.Handler) http.HandlerFunc {
+func Login(inject *auths.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// decode body
@@ -71,7 +71,7 @@ func (DI *Dependency_Injection) Login(inject *auths.Handler) http.HandlerFunc {
 		}
 
 		// validate body
-		err = DI.Validate.Struct(req)
+		err = inject.Validate.Struct(req)
 		if err != nil {
 			errors := err.(validator.ValidationErrors)
 			http.Error(w, fmt.Sprintf("Validation error: %s", errors), http.StatusBadRequest)

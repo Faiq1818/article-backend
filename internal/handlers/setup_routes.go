@@ -1,39 +1,34 @@
 package handlers
 
 import (
-	"article/internal/services/articles"
-	"article/internal/services/auths"
-
 	"database/sql"
 	"net/http"
+
+	article "article/internal/services/articles"
+	auths "article/internal/services/auths"
 
 	"github.com/go-playground/validator/v10"
 )
 
-type Dependency_Injection struct {
-	DB       *sql.DB
-	Validate *validator.Validate
-}
-
-func (DI *Dependency_Injection) SetupRoutes() *http.ServeMux {
+func SetupRoutes(db *sql.DB, validate *validator.Validate) *http.ServeMux {
 	// Dependency Injection
 	authInject := &auths.Handler{
-		DB:       DI.DB,
-		Validate: DI.Validate,
+		DB:       db,
+		Validate: validate,
 	}
 	articleInject := &article.Handler{
-		DB:       DI.DB,
-		Validate: DI.Validate,
+		DB:       db,
+		Validate: validate,
 	}
 
 	// initiate route
 	router := http.NewServeMux()
 
 	// routes
-	router.HandleFunc("POST /auth/register", DI.Register(authInject))
-	router.HandleFunc("POST /auth/login", DI.Login(authInject))
-	router.HandleFunc("POST /article", DI.SaveArticle(articleInject))
-	router.HandleFunc("GET /article", DI.GetArticle(articleInject))
+	router.HandleFunc("POST /auth/register", Register(authInject))
+	router.HandleFunc("POST /auth/login", Login(authInject))
+	router.HandleFunc("POST /article", SaveArticle(articleInject))
+	router.HandleFunc("GET /article", GetArticle(articleInject))
 
 	return router
 }

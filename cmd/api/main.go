@@ -1,32 +1,18 @@
 package main
 
 import (
-	"article/internal/handlers"
-
 	"database/sql"
 	"log"
 	"net/http"
 	"os"
 
+	handlers "article/internal/handlers"
+	middlewares "article/internal/middlewares"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
-
-func CORSMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
 
 func main() {
 	// get env
@@ -43,15 +29,11 @@ func main() {
 	}
 
 	// validator initiate
-	validate := validator.New()
+	validate := validator.New(validator.WithRequiredStructEnabled())
 
-	handlers := &handlers.Dependency_Injection{
-		DB:       db,
-		Validate: validate,
-	}
-
-	mux := handlers.SetupRoutes()
+	mux := handlers.SetupRoutes(db, validate)
 
 	// server listen
-	log.Fatal(http.ListenAndServe(":8000", CORSMiddleware(mux)))
+	// Wrapping up the mux inside the corsMiddleware so it can smuggle the cors header
+	log.Fatal(http.ListenAndServe(":8000", middlewares.CORSMiddleware(mux)))
 }
