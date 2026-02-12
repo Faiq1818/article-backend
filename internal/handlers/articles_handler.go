@@ -18,7 +18,7 @@ func SaveArticle(inject *article.Handler) http.HandlerFunc {
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
 			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
-				Message: "Invalid Body",
+				Message: "Invalid request Body",
 				Success: false,
 			})
 			return

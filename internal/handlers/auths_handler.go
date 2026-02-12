@@ -3,14 +3,11 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	pkg "article/internal/pkg"
 	requesttype "article/internal/request_type"
 	auths "article/internal/services/auths"
-
-	"github.com/go-playground/validator/v10"
 )
 
 func Register(inject *auths.Handler) http.HandlerFunc {
@@ -19,15 +16,21 @@ func Register(inject *auths.Handler) http.HandlerFunc {
 		var req requesttype.RegisterRequest
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
-			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+				Message: "Invalid request Body",
+				Success: false,
+			})
 			return
 		}
 
 		// validate body
 		err = inject.Validate.Struct(req)
 		if err != nil {
-			errors := err.(validator.ValidationErrors)
-			http.Error(w, fmt.Sprintf("Validation error: %s", errors), http.StatusBadRequest)
+			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+				Message: "Validation error",
+				Success: false,
+				Data:    pkg.FormatValidationError(err),
+			})
 			return
 		}
 
@@ -61,20 +64,25 @@ func Register(inject *auths.Handler) http.HandlerFunc {
 
 func Login(inject *auths.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		// decode body
 		var req requesttype.LoginRequest
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
-			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+				Message: "Invalid request Body",
+				Success: false,
+			})
 			return
 		}
 
 		// validate body
 		err = inject.Validate.Struct(req)
 		if err != nil {
-			errors := err.(validator.ValidationErrors)
-			http.Error(w, fmt.Sprintf("Validation error: %s", errors), http.StatusBadRequest)
+			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+				Message: "Validation error",
+				Success: false,
+				Data:    pkg.FormatValidationError(err),
+			})
 			return
 		}
 
