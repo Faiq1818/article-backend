@@ -2,6 +2,7 @@ package setup
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"log"
 
@@ -24,12 +25,37 @@ func EnsureBucketExists(ctx context.Context, client *s3.Client, bucketName strin
 
 		if errors.As(err, &ownedByYou) || errors.As(err, &alreadyExists) {
 			log.Printf("Bucket '%s' already exist.\n", bucketName)
-			return nil
+		} else {
+			return err
 		}
+	}
 
+	policy := map[string]any{
+		"Version": "2012-10-17",
+		"Statement": []map[string]any{
+			{
+				"Effect":    "Allow",
+				"Principal": "*",
+				"Action":    "s3:GetObject",
+				"Resource":  "arn:aws:s3:::" + bucketName + "/*",
+			},
+		},
+	}
+
+	policyBytes, err := json.Marshal(policy)
+	if err != nil {
 		return err
 	}
 
-	log.Printf("Bucket '%s' generated.\n", bucketName)
+	_, err = client.PutBucketPolicy(ctx, &s3.PutBucketPolicyInput{
+		Bucket: aws.String(bucketName),
+		Policy: aws.String(string(policyBytes)),
+	})
+
+	if err != nil {
+		log.Printf("Failed to set public policy for bucket '%s': %v\n", bucketName, err)
+		return err
+	}
+
 	return nil
 }
