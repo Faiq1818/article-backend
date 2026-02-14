@@ -1,0 +1,3 @@
+ALTER TABLE public.article
+ALTER COLUMN title TYPE TEXT,
+ALTER COLUMN content TYPE TEXT;

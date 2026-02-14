@@ -8,10 +8,11 @@ import (
 )
 
 type Article struct {
-	ID      string `json:"id"`
-	Slug    string `json:"slug"`
-	Title   string `json:"title"`
-	Content string `json:"content"`
+	ID         string `json:"id"`
+	Slug       string `json:"slug"`
+	Title      string `json:"title"`
+	Content    string `json:"content"`
+	Updated_at string `json:"updated_at"`
 }
 
 type ArticleResponse struct {
@@ -24,7 +25,7 @@ func (h *Handler) GetArticle(page int, limit int) ([]Article, error) {
 	offset := (page - 1) * limit
 
 	// query select to db
-	articleData, err := h.DB.Query("SELECT id, slug, title, content FROM article ORDER BY created_at DESC LIMIT $1 OFFSET $2", limit, offset)
+	articleData, err := h.DB.Query("SELECT id, slug, title, content, updated_at FROM article ORDER BY created_at DESC LIMIT $1 OFFSET $2", limit, offset)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,7 +36,7 @@ func (h *Handler) GetArticle(page int, limit int) ([]Article, error) {
 
 	for articleData.Next() {
 		var article Article
-		if err := articleData.Scan(&article.ID, &article.Slug, &article.Title, &article.Content); err != nil {
+		if err := articleData.Scan(&article.ID, &article.Slug, &article.Title, &article.Content, &article.Updated_at); err != nil {
 			log.Println(err)
 			continue
 		}
@@ -47,7 +48,7 @@ func (h *Handler) GetArticle(page int, limit int) ([]Article, error) {
 
 func (h *Handler) GetArticleSlug(slug string) (Article, error) {
 	// query select to db
-	articleData := h.DB.QueryRow("SELECT id, slug, title, content FROM article WHERE slug = $1", slug)
+	articleData := h.DB.QueryRow("SELECT id, slug, title, content, updated_at FROM article WHERE slug = $1", slug)
 
 	var article Article
 
@@ -56,6 +57,7 @@ func (h *Handler) GetArticleSlug(slug string) (Article, error) {
 		&article.Slug,
 		&article.Title,
 		&article.Content,
+		&article.Updated_at,
 	)
 
 	if err != nil {

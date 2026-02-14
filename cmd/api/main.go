@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"net/http"
@@ -8,10 +9,16 @@ import (
 
 	handlers "article/internal/handlers"
 	middlewares "article/internal/middlewares"
+	"article/setup"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+
+	// aws-sdk-go-v2 s3 lib
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
 func main() {
@@ -28,10 +35,29 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// initialize s3
+	cfg, err := config.LoadDefaultConfig(
+		context.TODO(),
+		config.WithRegion(os.Getenv("S3_REGION")),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.BaseEndpoint = aws.String(os.Getenv("S3_ENDPOINT"))
+		o.UsePathStyle = true
+	})
+
+	err = setup.EnsureBucketExists(context.Background(), s3Client, os.Getenv("S3_BUCKET_NAME"))
+	if err != nil {
+		log.Fatalf("Checking S3 bucket failed: %v", err)
+	}
+
 	// validator initiate
 	validate := validator.New(validator.WithRequiredStructEnabled())
 
-	mux := handlers.SetupRoutes(db, validate)
+	mux := handlers.SetupRoutes(db, validate, s3Client)
 
 	// server listen
 	// Wrapping up the mux inside the corsMiddleware so it can smuggle the cors header
