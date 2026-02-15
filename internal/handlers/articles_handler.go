@@ -52,7 +52,7 @@ func SaveArticle(inject *article.Handler) http.HandlerFunc {
 		}
 
 		// bussiness logic
-		err = inject.SaveArticle(req)
+		err = inject.SaveArticle(r.Context(), req)
 		if err != nil {
 			var appErr *pkg.AppError
 			if errors.As(err, &appErr) {

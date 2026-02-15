@@ -18,6 +18,7 @@ import (
 	// aws-sdk-go-v2 s3 lib
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
@@ -54,10 +55,12 @@ func main() {
 		log.Fatalf("Checking S3 bucket failed: %v", err)
 	}
 
+	s3Uploader := manager.NewUploader(s3Client)
+
 	// validator initiate
 	validate := validator.New(validator.WithRequiredStructEnabled())
 
-	mux := handlers.SetupRoutes(db, validate, s3Client)
+	mux := handlers.SetupRoutes(db, validate, s3Client, s3Uploader)
 
 	// server listen
 	// Wrapping up the mux inside the corsMiddleware so it can smuggle the cors header

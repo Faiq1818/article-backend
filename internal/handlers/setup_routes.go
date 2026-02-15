@@ -7,11 +7,12 @@ import (
 	article "article/internal/services/articles"
 	auths "article/internal/services/auths"
 
+	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/go-playground/validator/v10"
 )
 
-func SetupRoutes(db *sql.DB, validate *validator.Validate, s3Client *s3.Client) *http.ServeMux {
+func SetupRoutes(db *sql.DB, validate *validator.Validate, s3Client *s3.Client, s3Uploader *manager.Uploader) *http.ServeMux {
 	// Dependency Injection
 	authInject := &auths.Handler{
 		DB:       db,
@@ -19,9 +20,10 @@ func SetupRoutes(db *sql.DB, validate *validator.Validate, s3Client *s3.Client) 
 		S3Client: s3Client,
 	}
 	articleInject := &article.Handler{
-		DB:       db,
-		Validate: validate,
-		S3Client: s3Client,
+		DB:         db,
+		Validate:   validate,
+		S3Client:   s3Client,
+		S3Uploader: s3Uploader,
 	}
 
 	// initiate route
