@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"encoding/json"
+	// "encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
@@ -13,15 +13,31 @@ import (
 
 func SaveArticle(inject *article.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// decode body
-		var req requesttype.SaveArticleRequest
-		err := json.NewDecoder(r.Body).Decode(&req)
+		// multipart
+		err := r.ParseMultipartForm(5 << 20)
 		if err != nil {
 			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
-				Message: "Invalid request Body",
+				Message: "Failed to parse multipart payload",
 				Success: false,
 			})
 			return
+		}
+
+		file, header, err := r.FormFile("image")
+		if err != nil {
+			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+				Message: "Image file is missing or invalid",
+				Success: false,
+			})
+			return
+		}
+		defer file.Close() // preventing file descriptor leak
+
+		// decode body
+		req := requesttype.SaveArticleRequest{
+			Title:   r.FormValue("title"),
+			Content: r.FormValue("content"),
+			Image:   header,
 		}
 
 		// validate body
