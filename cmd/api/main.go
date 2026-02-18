@@ -23,6 +23,8 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
+
 	// get env
 	err := godotenv.Load()
 	if err != nil {
@@ -38,7 +40,7 @@ func main() {
 
 	// initialize s3
 	cfg, err := config.LoadDefaultConfig(
-		context.TODO(),
+		ctx,
 		config.WithRegion(os.Getenv("S3_REGION")),
 	)
 	if err != nil {
@@ -50,7 +52,7 @@ func main() {
 		o.UsePathStyle = true
 	})
 
-	err = setup.EnsureBucketExists(context.Background(), s3Client, os.Getenv("S3_BUCKET_NAME"))
+	err = setup.EnsureBucketExists(ctx, s3Client, os.Getenv("S3_BUCKET_NAME"))
 	if err != nil {
 		log.Fatalf("Checking S3 bucket failed: %v", err)
 	}
@@ -60,6 +62,7 @@ func main() {
 	// validator initiate
 	validate := validator.New(validator.WithRequiredStructEnabled())
 
+	// routes initiate
 	mux := handlers.SetupRoutes(db, validate, s3Client, s3Uploader)
 
 	// server listen
