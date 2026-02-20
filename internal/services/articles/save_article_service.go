@@ -50,28 +50,24 @@ func (h *Handler) SaveArticle(ctx context.Context, req requesttype.SaveArticleRe
 	if err != nil {
 		log.Printf("hash error")
 	}
-
 	objectKey := "articles/" + hash + ext
 
 	// upload image
 	_, errS3 := s3Actor.UploadObject(ctx, os.Getenv("S3_BUCKET_NAME"), objectKey, srcFile)
-
 	if errS3 != nil {
 		log.Printf("S3 Upload Failed: %v", errS3)
 		return &pkg.AppError{Message: "Gagal mengupload gambar", Code: 500, Err: errS3}
 	}
 
-	// generate a slug
+	// generate slug and title
 	slug := strings.ReplaceAll(req.Title, " ", "-")
 	slug = strings.ToLower(slug)
-
-	// slug make
-	slugGenerate := slug + "ioi" + hash
-	titleGenerate := req.Title + "-" + hash
+	cutHash := hash[:5]
+	slugGenerate := slug + "-" + cutHash
 
 	// db push
 	u := uuid.New()
-	_, err = h.DB.Exec("INSERT INTO article (id, title, slug, content) VALUES ($1, $2, $3, $4);", u, titleGenerate, slugGenerate, req.Content)
+	_, err = h.DB.Exec("INSERT INTO article (id, title, slug, content) VALUES ($1, $2, $3, $4);", u, req.Title, slugGenerate, req.Content)
 	if err != nil {
 		statusCode, clientMessage := pkg.ParsePostgresError(err)
 		log.Printf("Error inserting user: %v", err)

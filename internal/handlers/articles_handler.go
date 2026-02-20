@@ -16,7 +16,7 @@ func SaveArticle(inject *article.Handler) http.HandlerFunc {
 		ctx := r.Context()
 
 		// multipart
-		const maxUploadSize = 10 << 20 // 10 MB
+		const maxUploadSize = 20 << 20 // 10 MB
 		err := r.ParseMultipartForm(maxUploadSize)
 		if err != nil {
 			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
