@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"strings"
 
 	pkg "article/internal/pkg"
 	requesttype "article/internal/request_type"
@@ -56,42 +55,24 @@ func SaveArticle(inject *article.Handler) http.HandlerFunc {
 
 		// make dynamic image name extension
 		srcFile, err := req.Image.Open()
-
-		buf := make([]byte, 512)
-		n, _ := srcFile.Read(buf)
-
-		contentType := http.DetectContentType(buf[:n])
-
-		//// check if the content type prefix is not an image (image/)
-		if !strings.HasPrefix(contentType, "image/") {
+		if err != nil {
 			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
-				Message: "File harus berupa gambar (.jpg, .jpeg, .png, .webp, .gif",
+				Message: "Gagal membuka file",
 				Success: false,
 			})
 			return
 		}
+		defer srcFile.Close()
 
-		ext := ".bin"
-		switch contentType {
-		case "image/jpeg":
-			ext = ".jpg"
-
-		case "image/png":
-			ext = ".png"
-
-		case "image/webp":
-			ext = ".webp"
-
-		case "image/gif":
-			ext = ".gif"
-
-		case "image/svg+xml":
-			ext = ".svg"
-
-		default:
-			ext = ".bin"
+		// detect image extension
+		ext, err := pkg.DetectImageExtension(srcFile)
+		if err != nil {
+			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+				Message: "File harus berupa gambar (.jpg, .jpeg, .png, .webp, .gif)",
+				Success: false,
+			})
+			return
 		}
-		srcFile.Seek(0, 0)
 
 		// bussiness logic
 		err = inject.SaveArticle(ctx, req, ext)

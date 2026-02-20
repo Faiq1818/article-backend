@@ -1,13 +1,11 @@
 package pkg
 
 import (
-	"github.com/lib/pq" // atau pgx
+	"github.com/lib/pq"
 	"net/http"
 )
 
-// ParsePostgresError mengubah error DB menjadi status code dan pesan user
 func ParsePostgresError(err error) (int, string) {
-	// Cek apakah ini error dari driver Postgres (lib/pq)
 	if pqErr, ok := err.(*pq.Error); ok {
 		switch pqErr.Code {
 		case "23505": // unique_violation
@@ -21,6 +19,5 @@ func ParsePostgresError(err error) (int, string) {
 		}
 	}
 
-	// Default error (koneksi putus, sintaks salah, dll)
 	return http.StatusInternalServerError, "Terjadi kesalahan internal pada server."
 }
