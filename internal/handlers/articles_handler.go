@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	// "encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	pkg "article/internal/pkg"
 	requesttype "article/internal/request_type"
@@ -13,8 +13,11 @@ import (
 
 func SaveArticle(inject *article.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
 		// multipart
-		err := r.ParseMultipartForm(5 << 20)
+		const maxUploadSize = 10 << 20 // 10 MB
+		err := r.ParseMultipartForm(maxUploadSize)
 		if err != nil {
 			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
 				Message: "Failed to parse multipart payload",
@@ -51,8 +54,47 @@ func SaveArticle(inject *article.Handler) http.HandlerFunc {
 			return
 		}
 
+		// make dynamic image name extension
+		srcFile, err := req.Image.Open()
+
+		buf := make([]byte, 512)
+		n, _ := srcFile.Read(buf)
+
+		contentType := http.DetectContentType(buf[:n])
+
+		//// check if the content type prefix is not an image (image/)
+		if !strings.HasPrefix(contentType, "image/") {
+			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+				Message: "File harus berupa gambar (.jpg, .jpeg, .png, .webp, .gif",
+				Success: false,
+			})
+			return
+		}
+
+		ext := ".bin"
+		switch contentType {
+		case "image/jpeg":
+			ext = ".jpg"
+
+		case "image/png":
+			ext = ".png"
+
+		case "image/webp":
+			ext = ".webp"
+
+		case "image/gif":
+			ext = ".gif"
+
+		case "image/svg+xml":
+			ext = ".svg"
+
+		default:
+			ext = ".bin"
+		}
+		srcFile.Seek(0, 0)
+
 		// bussiness logic
-		err = inject.SaveArticle(r.Context(), req)
+		err = inject.SaveArticle(ctx, req, ext)
 		if err != nil {
 			var appErr *pkg.AppError
 			if errors.As(err, &appErr) {

@@ -9,7 +9,7 @@ import (
 
 	handlers "article/internal/handlers"
 	middlewares "article/internal/middlewares"
-	"article/setup"
+	setup "article/setup"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"

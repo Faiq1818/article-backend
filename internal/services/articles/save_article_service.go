@@ -3,6 +3,8 @@ package article
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
 	"log"
 	"os"
 	"strings"
@@ -16,50 +18,52 @@ import (
 
 const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-func randomHash(n int) (string, error) {
-	bytes := make([]byte, n)
+func randomHash() (string, error) {
+	randomBytes := make([]byte, 32)
 
-	_, err := rand.Read(bytes)
+	_, err := rand.Read(randomBytes)
 	if err != nil {
 		return "", err
 	}
 
-	for i := range bytes {
-		bytes[i] = letters[int(bytes[i])%len(letters)]
-	}
+	// Hitung SHA-256 dari data acak
+	hash := sha256.Sum256(randomBytes)
 
-	return string(bytes), nil
+	return string(hex.EncodeToString(hash[:])), nil
 }
 
-func (h *Handler) SaveArticle(ctx context.Context, req requesttype.SaveArticleRequest) error {
-	// generate a slug
-	slug := strings.ReplaceAll(req.Title, " ", "-")
-	slug = strings.ToLower(slug)
+func (h *Handler) SaveArticle(ctx context.Context, req requesttype.SaveArticleRequest, ext string) error {
+	s3Actor := s3helpers.S3Actions{
+		S3Client:  h.S3Client,
+		S3Manager: h.S3Uploader,
+	}
 
 	// img s3 upload
 	srcFile, err := req.Image.Open()
 	if err != nil {
 		return &pkg.AppError{Message: "Gagal membaca file gambar", Code: 400, Err: err}
 	}
-	defer srcFile.Close() // Mencegah memori leak di layer service
+	defer srcFile.Close() // prevent memori leak in service layer
 
-	s3Actor := s3helpers.S3Actions{
-		S3Client:  h.S3Client,
-		S3Manager: h.S3Uploader,
-	}
-
-	hash, err := randomHash(5)
+	// generate image name
+	hash, err := randomHash()
 	if err != nil {
 		log.Printf("hash error")
 	}
 
-	objectKey := slug + hash + ".jpg" // Catatan: Idealnya ekstensi file diekstrak dinamis
+	objectKey := "articles/" + hash + ext
+
+	// upload image
 	_, errS3 := s3Actor.UploadObject(ctx, os.Getenv("S3_BUCKET_NAME"), objectKey, srcFile)
 
 	if errS3 != nil {
 		log.Printf("S3 Upload Failed: %v", errS3)
 		return &pkg.AppError{Message: "Gagal mengupload gambar", Code: 500, Err: errS3}
 	}
+
+	// generate a slug
+	slug := strings.ReplaceAll(req.Title, " ", "-")
+	slug = strings.ToLower(slug)
 
 	// slug make
 	slugGenerate := slug + "ioi" + hash
