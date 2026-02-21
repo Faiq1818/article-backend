@@ -16,6 +16,8 @@ WORKDIR /root/
 
 COPY --from=builder /app/main .
 
+COPY .env .env
+
 EXPOSE 8000
 
 CMD ["./main"]

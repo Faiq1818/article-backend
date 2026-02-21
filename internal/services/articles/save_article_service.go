@@ -70,7 +70,7 @@ func (h *Handler) SaveArticle(ctx context.Context, req requesttype.SaveArticleRe
 	_, err = h.DB.Exec("INSERT INTO article (id, title, slug, content, image_url) VALUES ($1, $2, $3, $4, $5);", u, req.Title, slugGenerate, req.Content, imageUrl)
 	if err != nil {
 		statusCode, clientMessage := pkg.ParsePostgresError(err)
-		log.Printf("Error inserting user: %v", err)
+		log.Printf("Error inserting article: %v", err)
 
 		return &pkg.AppError{
 			Message: clientMessage,
@@ -78,6 +78,8 @@ func (h *Handler) SaveArticle(ctx context.Context, req requesttype.SaveArticleRe
 			Err:     err,
 		}
 	}
+
+	log.Println("Successfully inserting article!")
 
 	return nil
 }
