@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"log/slog"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -12,7 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 )
 
-func EnsureBucketExists(ctx context.Context, client *s3.Client, bucketName string) error {
+func EnsureBucketExists(ctx context.Context, client *s3.Client, bucketName string, logger *slog.Logger) error {
 	input := &s3.CreateBucketInput{
 		Bucket: aws.String(bucketName),
 	}
@@ -24,7 +25,8 @@ func EnsureBucketExists(ctx context.Context, client *s3.Client, bucketName strin
 		var alreadyExists *types.BucketAlreadyExists
 
 		if errors.As(err, &ownedByYou) || errors.As(err, &alreadyExists) {
-			log.Printf("Bucket '%s' already exist.\n", bucketName)
+			// log.Printf("Bucket '%s' already exist.\n", bucketName)
+			logger.Info("Bucket already exist, skipping create bucket.")
 		} else {
 			return err
 		}

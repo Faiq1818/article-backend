@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 
@@ -24,6 +25,9 @@ import (
 
 func main() {
 	ctx := context.Background()
+
+	// initiate log/slog
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
 	// get env
 	err := godotenv.Load()
@@ -52,7 +56,7 @@ func main() {
 		o.UsePathStyle = true
 	})
 
-	err = setup.EnsureBucketExists(ctx, s3Client, os.Getenv("S3_BUCKET_NAME"))
+	err = setup.EnsureBucketExists(ctx, s3Client, os.Getenv("S3_BUCKET_NAME"), logger)
 	if err != nil {
 		log.Fatalf("Checking S3 bucket failed: %v", err)
 	}
@@ -63,7 +67,7 @@ func main() {
 	validate := validator.New(validator.WithRequiredStructEnabled())
 
 	// routes initiate
-	mux := handlers.SetupRoutes(db, validate, s3Client, s3Uploader)
+	mux := handlers.SetupRoutes(db, validate, s3Client, s3Uploader, logger)
 
 	// server listen
 	// Wrapping up the mux inside the corsMiddleware so it can smuggle the cors header

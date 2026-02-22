@@ -37,9 +37,10 @@ func SaveArticle(inject *article.Handler) http.HandlerFunc {
 
 		// decode body
 		req := requesttype.SaveArticleRequest{
-			Title:   r.FormValue("title"),
-			Content: r.FormValue("content"),
-			Image:   header,
+			Title:       r.FormValue("title"),
+			Content:     r.FormValue("content"),
+			Description: r.FormValue("description"),
+			Image:       header,
 		}
 
 		// validate body

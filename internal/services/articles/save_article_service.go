@@ -48,14 +48,14 @@ func (h *Handler) SaveArticle(ctx context.Context, req requesttype.SaveArticleRe
 	// generate image name
 	hash, err := randomHash()
 	if err != nil {
-		log.Printf("hash error")
+		h.Logger.Warn("hashing error")
 	}
 	objectKey := "articles/" + hash + ext
 
 	// upload image
 	imageUrl, errS3 := s3Actor.UploadObject(ctx, os.Getenv("S3_BUCKET_NAME"), objectKey, srcFile)
 	if errS3 != nil {
-		log.Printf("S3 Upload Failed: %v", errS3)
+		h.Logger.Error("S3 Upload Failed")
 		return &pkg.AppError{Message: "Gagal mengupload gambar", Code: 500, Err: errS3}
 	}
 
@@ -67,7 +67,7 @@ func (h *Handler) SaveArticle(ctx context.Context, req requesttype.SaveArticleRe
 
 	// db push
 	u := uuid.New()
-	_, err = h.DB.Exec("INSERT INTO article (id, title, slug, content, image_url) VALUES ($1, $2, $3, $4, $5);", u, req.Title, slugGenerate, req.Content, imageUrl)
+	_, err = h.DB.Exec("INSERT INTO article (id, title, slug, description, content, image_url) VALUES ($1, $2, $3, $4, $5, $6);", u, req.Title, slugGenerate, req.Description, req.Content, imageUrl)
 	if err != nil {
 		statusCode, clientMessage := pkg.ParsePostgresError(err)
 		log.Printf("Error inserting article: %v", err)
@@ -79,7 +79,6 @@ func (h *Handler) SaveArticle(ctx context.Context, req requesttype.SaveArticleRe
 		}
 	}
 
-	log.Println("Successfully inserting article!")
-
+	h.Logger.Info("Successfully inserting article!")
 	return nil
 }
