@@ -8,12 +8,13 @@ import (
 )
 
 type Article struct {
-	Updated_at string  `json:"updated_at"`
-	ID         string  `json:"id"`
-	Slug       string  `json:"slug"`
-	Title      string  `json:"title"`
-	Content    string  `json:"content"`
-	Image_url  *string `json:"image_url"`
+	Updated_at  string  `json:"updated_at"`
+	ID          string  `json:"id"`
+	Slug        string  `json:"slug"`
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	Content     string  `json:"content"`
+	Image_url   *string `json:"image_url"`
 }
 
 type ArticleResponse struct {
@@ -26,7 +27,7 @@ func (h *Handler) GetArticle(page int, limit int) ([]Article, error) {
 	offset := (page - 1) * limit
 
 	// query select to db
-	articleData, err := h.DB.Query("SELECT updated_at, id, slug, title, content, image_url FROM article ORDER BY created_at DESC LIMIT $1 OFFSET $2", limit, offset)
+	articleData, err := h.DB.Query("SELECT updated_at, id, slug, title, content, description, image_url FROM article ORDER BY created_at DESC LIMIT $1 OFFSET $2", limit, offset)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -44,6 +45,7 @@ func (h *Handler) GetArticle(page int, limit int) ([]Article, error) {
 			&article.Slug,
 			&article.Title,
 			&article.Content,
+			&article.Description,
 			&article.Image_url,
 		)
 		if err != nil {
