@@ -32,7 +32,7 @@ func randomHash() (string, error) {
 	return string(hex.EncodeToString(hash[:])), nil
 }
 
-func (h *Handler) SaveArticle(ctx context.Context, req requesttype.SaveArticleRequest, ext string) error {
+func (h *Service) SaveArticle(ctx context.Context, req requesttype.SaveArticleRequest, ext string) error {
 	s3Actor := s3helpers.S3Actions{
 		S3Client:  h.S3Client,
 		S3Manager: h.S3Uploader,

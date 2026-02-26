@@ -9,7 +9,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-type Handler struct {
+type Service struct {
 	DB         *sql.DB
 	Validate   *validator.Validate
 	S3Client   *s3.Client

@@ -10,7 +10,7 @@ import (
 	article "article/internal/services/articles"
 )
 
-func SaveArticle(inject *article.Handler) http.HandlerFunc {
+func SaveArticle(inject *article.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
@@ -103,7 +103,7 @@ func SaveArticle(inject *article.Handler) http.HandlerFunc {
 	}
 }
 
-func GetArticle(inject *article.Handler) http.HandlerFunc {
+func GetArticle(inject *article.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// get url params
 		queryParams := r.URL.Query()
@@ -156,7 +156,7 @@ func GetArticle(inject *article.Handler) http.HandlerFunc {
 	}
 }
 
-func GetArticleSlug(inject *article.Handler) http.HandlerFunc {
+func GetArticleSlug(inject *article.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// get slug
 		slug := r.PathValue("slug")

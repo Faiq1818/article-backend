@@ -14,7 +14,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (h *Handler) Login(req requesttype.LoginRequest) error {
+func (h *Service) Login(req requesttype.LoginRequest) error {
 	// query get user data from req.email
 	userData := h.DB.QueryRow("SELECT id, name, email, password FROM users WHERE email = ($1);", req.Email)
 

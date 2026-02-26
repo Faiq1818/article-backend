@@ -10,7 +10,7 @@ import (
 	auths "article/internal/services/auths"
 )
 
-func Register(inject *auths.Handler) http.HandlerFunc {
+func Register(inject *auths.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// decode body
 		var req requesttype.RegisterRequest
@@ -62,7 +62,7 @@ func Register(inject *auths.Handler) http.HandlerFunc {
 	}
 }
 
-func Login(inject *auths.Handler) http.HandlerFunc {
+func Login(inject *auths.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// decode body
 		var req requesttype.LoginRequest

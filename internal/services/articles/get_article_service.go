@@ -22,7 +22,7 @@ type ArticleResponse struct {
 	Data    []Article `json:"data"`
 }
 
-func (h *Handler) GetArticle(page int, limit int) ([]Article, error) {
+func (h *Service) GetArticle(page int, limit int) ([]Article, error) {
 	// making the offset
 	offset := (page - 1) * limit
 
@@ -58,7 +58,7 @@ func (h *Handler) GetArticle(page int, limit int) ([]Article, error) {
 	return articles, nil
 }
 
-func (h *Handler) GetArticleSlug(slug string) (Article, error) {
+func (h *Service) GetArticleSlug(slug string) (Article, error) {
 	// query select to db
 	articleData := h.DB.QueryRow("SELECT updated_at, id, slug, title, content, image_url FROM article WHERE slug = $1", slug)
 

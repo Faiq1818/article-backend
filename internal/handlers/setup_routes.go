@@ -15,13 +15,13 @@ import (
 
 func SetupRoutes(db *sql.DB, validate *validator.Validate, s3Client *s3.Client, s3Uploader *manager.Uploader, logger *slog.Logger) *http.ServeMux {
 	// Dependency Injection
-	authInject := &auths.Handler{
+	authInject := &auths.Service{
 		DB:       db,
 		Validate: validate,
 		S3Client: s3Client,
 		Logger:   logger,
 	}
-	articleInject := &article.Handler{
+	articleInject := &article.Service{
 		DB:         db,
 		Validate:   validate,
 		S3Client:   s3Client,
