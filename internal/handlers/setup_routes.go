@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	postgres "article/internal/repositories/postgres"
 	article "article/internal/services/articles"
 	auths "article/internal/services/auths"
 
@@ -14,8 +15,12 @@ import (
 )
 
 func SetupRoutes(db *sql.DB, validate *validator.Validate, s3Client *s3.Client, s3Uploader *manager.Uploader, logger *slog.Logger) *http.ServeMux {
+	// Repository db initiate
+	authRepo := postgres.NewAuthRepository(db)
+
 	// Dependency Injection
 	authInject := &auths.Service{
+		Repo:     authRepo,
 		DB:       db,
 		Validate: validate,
 		S3Client: s3Client,
@@ -35,10 +40,10 @@ func SetupRoutes(db *sql.DB, validate *validator.Validate, s3Client *s3.Client, 
 	// routes
 	router.HandleFunc("GET /article", GetArticle(articleInject))
 	router.HandleFunc("GET /article/{slug}", GetArticleSlug(articleInject))
+	router.HandleFunc("POST /article", SaveArticle(articleInject))
 
 	router.HandleFunc("POST /auth/register", Register(authInject))
 	router.HandleFunc("POST /auth/login", Login(authInject))
-	router.HandleFunc("POST /article", SaveArticle(articleInject))
 
 	return router
 }

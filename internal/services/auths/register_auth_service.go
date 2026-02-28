@@ -1,8 +1,7 @@
 package auths
 
 import (
-	"log"
-
+	models "article/internal/models"
 	pkg "article/internal/pkg"
 	requesttype "article/internal/request_type"
 
@@ -10,11 +9,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (h *Service) Register(req requesttype.RegisterRequest) error {
+func (s *Service) Register(req requesttype.RegisterRequest) error {
 	// hash password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		log.Println(err)
+		s.Logger.Error("Error when hasing password from new user", "err", err)
 		return &pkg.AppError{
 			Message: "failed to process password",
 			Code:    500,
@@ -23,10 +22,16 @@ func (h *Service) Register(req requesttype.RegisterRequest) error {
 	}
 
 	// insert to db
-	u := uuid.New()
-	_, err = h.DB.Exec("INSERT INTO users (id, name, password, email) VALUES ($1, $2, $3, $4);", u, req.Name, hashedPassword, req.Email)
+	user := &models.User{
+		Email:    req.Email,
+		Name:     req.Name,
+		ID:       uuid.New(),
+		Password: string(hashedPassword),
+	}
+
+	err = s.Repo.CreateUser(user)
 	if err != nil {
-		log.Println(err)
+		s.Logger.Error("Error when push new user to db", "err", err)
 		return &pkg.AppError{
 			Message: "Akun gagal dibuat, pastikan email unik",
 			Code:    500,

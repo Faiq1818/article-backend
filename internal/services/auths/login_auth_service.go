@@ -14,12 +14,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (h *Service) Login(req requesttype.LoginRequest) error {
+func (s *Service) Login(req requesttype.LoginRequest) error {
 	// query get user data from req.email
-	userData := h.DB.QueryRow("SELECT id, name, email, password FROM users WHERE email = ($1);", req.Email)
-
-	var id, name, email, password string
-	err := userData.Scan(&id, &name, &email, &password)
+	user, err := s.Repo.GetUserByEmail(req.Email)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			log.Printf("No user: %v", err)
@@ -38,7 +35,7 @@ func (h *Service) Login(req requesttype.LoginRequest) error {
 	}
 
 	// check and compare password
-	err = bcrypt.CompareHashAndPassword([]byte(password), []byte(req.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	if err != nil {
 		return &pkg.AppError{
 			Message: "Password salah",
@@ -51,12 +48,12 @@ func (h *Service) Login(req requesttype.LoginRequest) error {
 	key := []byte(os.Getenv("JWT_SECRET"))
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
-			"role": "admin",
-			"name": "Faiq",
-			"exp":  time.Now().Add(24 * time.Hour).Unix(),
+			"user_id": user.ID,
+			"role":    "admin",
+			"exp":     time.Now().Add(24 * time.Hour).Unix(),
 		})
 
-	s, err := t.SignedString(key)
+	token, err := t.SignedString(key)
 	if err != nil {
 		fmt.Println(err)
 		return &pkg.AppError{
@@ -65,7 +62,7 @@ func (h *Service) Login(req requesttype.LoginRequest) error {
 			Err:     err,
 		}
 	}
-	_ = s
+	_ = token
 
 	// response
 	return nil
