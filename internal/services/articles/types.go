@@ -1,6 +1,7 @@
 package article
 
 import (
+	"article/internal/repositories"
 	"database/sql"
 	"log/slog"
 
@@ -10,6 +11,7 @@ import (
 )
 
 type Service struct {
+	Repo       repositories.ArticleRepository
 	DB         *sql.DB
 	Validate   *validator.Validate
 	S3Client   *s3.Client

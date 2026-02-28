@@ -17,16 +17,17 @@ import (
 func SetupRoutes(db *sql.DB, validate *validator.Validate, s3Client *s3.Client, s3Uploader *manager.Uploader, logger *slog.Logger) *http.ServeMux {
 	// Repository db initiate
 	authRepo := postgres.NewAuthRepository(db)
+	articleRepo := postgres.NewArticleRepository(db)
 
 	// Dependency Injection
 	authInject := &auths.Service{
 		Repo:     authRepo,
-		DB:       db,
 		Validate: validate,
 		S3Client: s3Client,
 		Logger:   logger,
 	}
 	articleInject := &article.Service{
+		Repo:       articleRepo,
 		DB:         db,
 		Validate:   validate,
 		S3Client:   s3Client,

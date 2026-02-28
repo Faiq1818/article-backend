@@ -1,7 +1,6 @@
 package auths
 
 import (
-	"database/sql"
 	"log/slog"
 
 	repositories "article/internal/repositories"
@@ -12,7 +11,6 @@ import (
 
 type Service struct {
 	Repo     repositories.AuthRepository
-	DB       *sql.DB
 	Validate *validator.Validate
 	S3Client *s3.Client
 	Logger   *slog.Logger
