@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	postgres "article/internal/repositories/postgres"
+	s3Repo "article/internal/repositories/s3"
 	article "article/internal/services/articles"
 	auths "article/internal/services/auths"
 
@@ -19,6 +20,8 @@ func SetupRoutes(db *sql.DB, validate *validator.Validate, s3Client *s3.Client, 
 	authRepo := postgres.NewAuthRepository(db)
 	articleRepo := postgres.NewArticleRepository(db)
 
+	s3Repo := s3Repo.NewS3Repository(s3Client, s3Uploader)
+
 	// Dependency Injection
 	authInject := &auths.Service{
 		Repo:     authRepo,
@@ -27,12 +30,11 @@ func SetupRoutes(db *sql.DB, validate *validator.Validate, s3Client *s3.Client, 
 		Logger:   logger,
 	}
 	articleInject := &article.Service{
-		Repo:       articleRepo,
-		DB:         db,
-		Validate:   validate,
-		S3Client:   s3Client,
-		S3Uploader: s3Uploader,
-		Logger:     logger,
+		Repo:     articleRepo,
+		DB:       db,
+		Validate: validate,
+		S3Repo:   s3Repo,
+		Logger:   logger,
 	}
 
 	// initiate route

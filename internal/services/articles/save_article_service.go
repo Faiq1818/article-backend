@@ -6,12 +6,10 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"log"
-	"os"
 	"strings"
 
 	pkg "article/internal/pkg"
 	requesttype "article/internal/request_type"
-	s3helpers "article/internal/s3_helpers"
 
 	"github.com/google/uuid"
 )
@@ -25,19 +23,13 @@ func randomHash() (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	// Hitung SHA-256 dari data acak
 	hash := sha256.Sum256(randomBytes)
 
 	return string(hex.EncodeToString(hash[:])), nil
 }
 
-func (h *Service) SaveArticle(ctx context.Context, req requesttype.SaveArticleRequest, ext string) error {
-	s3Actor := s3helpers.S3Actions{
-		S3Client:  h.S3Client,
-		S3Manager: h.S3Uploader,
-	}
-
+func (s *Service) SaveArticle(ctx context.Context, req requesttype.SaveArticleRequest, ext string) error {
 	// img s3 upload
 	srcFile, err := req.Image.Open()
 	if err != nil {
@@ -48,14 +40,14 @@ func (h *Service) SaveArticle(ctx context.Context, req requesttype.SaveArticleRe
 	// generate image name
 	hash, err := randomHash()
 	if err != nil {
-		h.Logger.Warn("hashing error")
+		s.Logger.Warn("hashing error")
 	}
 	objectKey := "articles/" + hash + ext
 
 	// upload image
-	imageUrl, errS3 := s3Actor.UploadObject(ctx, os.Getenv("S3_BUCKET_NAME"), objectKey, srcFile)
+	imageUrl, errS3 := s.S3Repo.UploadObject(ctx, objectKey, srcFile)
 	if errS3 != nil {
-		h.Logger.Error("S3 Upload Failed")
+		s.Logger.Error("S3 Upload Failed")
 		return &pkg.AppError{Message: "Gagal mengupload gambar", Code: 500, Err: errS3}
 	}
 
@@ -67,7 +59,7 @@ func (h *Service) SaveArticle(ctx context.Context, req requesttype.SaveArticleRe
 
 	// db push
 	u := uuid.New()
-	_, err = h.DB.Exec("INSERT INTO article (id, title, slug, description, content, image_url) VALUES ($1, $2, $3, $4, $5, $6);", u, req.Title, slugGenerate, req.Description, req.Content, imageUrl)
+	_, err = s.DB.Exec("INSERT INTO article (id, title, slug, description, content, image_url) VALUES ($1, $2, $3, $4, $5, $6);", u, req.Title, slugGenerate, req.Description, req.Content, imageUrl)
 	if err != nil {
 		statusCode, clientMessage := pkg.ParsePostgresError(err)
 		log.Printf("Error inserting article: %v", err)
@@ -79,6 +71,6 @@ func (h *Service) SaveArticle(ctx context.Context, req requesttype.SaveArticleRe
 		}
 	}
 
-	h.Logger.Info("Successfully inserting article!")
+	s.Logger.Info("Successfully inserting article!")
 	return nil
 }
