@@ -49,7 +49,7 @@ func (r *ArticleRepository) GetManyArticle(limit int, offset int) ([]models.Arti
 
 func (r *ArticleRepository) GetArticleBySlug(slug string) (models.Article, error) {
 	// query select to db
-	articleData := r.DB.QueryRow("SELECT updated_at, id, slug, title, content, image_url FROM article WHERE slug = $1", slug)
+	articleData := r.DB.QueryRow("SELECT updated_at, id, slug, title, description, content, image_url FROM article WHERE slug = $1", slug)
 
 	var article models.Article
 	err := articleData.Scan(
@@ -57,6 +57,7 @@ func (r *ArticleRepository) GetArticleBySlug(slug string) (models.Article, error
 		&article.ID,
 		&article.Slug,
 		&article.Title,
+		&article.Description,
 		&article.Content,
 		&article.Image_url,
 	)
@@ -71,6 +72,23 @@ func (r *ArticleRepository) SaveArticle(req requesttype.SaveArticleRequest, imag
 	// db push
 	u := uuid.New()
 	_, err := r.DB.Exec("INSERT INTO article (id, title, slug, description, content, image_url) VALUES ($1, $2, $3, $4, $5, $6);", u, req.Title, slugGenerate, req.Description, req.Content, imageUrl)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *ArticleRepository) PutArticle(req requesttype.PutArticleRequest, imageUrl string, slugGenerate string, oldSlug string) error {
+	// db push
+	_, err := r.DB.Exec(`
+		UPDATE article 
+		SET title = $1, 
+			description = $2, 
+			content = $3, 
+			image_url = $4
+		WHERE slug = $5;
+	`, req.Title, req.Description, req.Content, imageUrl, oldSlug)
 	if err != nil {
 		return err
 	}

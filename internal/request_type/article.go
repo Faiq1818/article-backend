@@ -8,3 +8,10 @@ type SaveArticleRequest struct {
 	Content     string                `json:"content" validate:"required"`
 	Image       *multipart.FileHeader `validate:"required"`
 }
+
+type PutArticleRequest struct {
+	Title       string `json:"title" validate:"required"`
+	Description string `json:"description" validate:"required"`
+	Content     string `json:"content" validate:"required"`
+	Image       *multipart.FileHeader
+}

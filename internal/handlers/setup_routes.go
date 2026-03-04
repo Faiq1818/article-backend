@@ -41,8 +41,9 @@ func SetupRoutes(db *sql.DB, validate *validator.Validate, s3Client *s3.Client, 
 
 	// routes
 	router.HandleFunc("GET /article", GetArticle(articleInject))
-	router.HandleFunc("GET /article/{slug}", GetArticleSlug(articleInject))
 	router.HandleFunc("POST /article", SaveArticle(articleInject))
+	router.HandleFunc("GET /article/{slug}", GetArticleSlug(articleInject))
+	router.HandleFunc("PUT /article/{slug}", PutArticleSlug(articleInject))
 
 	router.HandleFunc("POST /auth/register", Register(authInject))
 	router.HandleFunc("POST /auth/login", Login(authInject))
