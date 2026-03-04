@@ -10,8 +10,6 @@ import (
 
 	pkg "article/internal/pkg"
 	requesttype "article/internal/request_type"
-
-	"github.com/google/uuid"
 )
 
 const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -23,7 +21,6 @@ func randomHash() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	// Hitung SHA-256 dari data acak
 	hash := sha256.Sum256(randomBytes)
 
 	return string(hex.EncodeToString(hash[:])), nil
@@ -57,9 +54,7 @@ func (s *Service) SaveArticle(ctx context.Context, req requesttype.SaveArticleRe
 	cutHash := hash[:5]
 	slugGenerate := slug + "-" + cutHash
 
-	// db push
-	u := uuid.New()
-	_, err = s.DB.Exec("INSERT INTO article (id, title, slug, description, content, image_url) VALUES ($1, $2, $3, $4, $5, $6);", u, req.Title, slugGenerate, req.Description, req.Content, imageUrl)
+	s.Repo.SaveArticle(req, imageUrl, slugGenerate)
 	if err != nil {
 		statusCode, clientMessage := pkg.ParsePostgresError(err)
 		log.Printf("Error inserting article: %v", err)

@@ -19,7 +19,6 @@ func SetupRoutes(db *sql.DB, validate *validator.Validate, s3Client *s3.Client, 
 	// Repository db initiate
 	authRepo := postgres.NewAuthRepository(db)
 	articleRepo := postgres.NewArticleRepository(db)
-
 	s3Repo := s3Repo.NewS3Repository(s3Client, s3Uploader)
 
 	// Dependency Injection
