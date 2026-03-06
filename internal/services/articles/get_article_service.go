@@ -50,5 +50,7 @@ func (s *Service) GetArticleSlug(slug string) (models.Article, error) {
 		}
 	}
 
+	s.Logger.Info("Get article from slug success")
+
 	return article, nil
 }

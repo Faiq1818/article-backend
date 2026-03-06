@@ -87,7 +87,7 @@ func Login(inject *auths.Service) http.HandlerFunc {
 		}
 
 		// bussiness logic
-		err = inject.Login(req)
+		token, err := inject.Login(req)
 		if err != nil {
 			var appErr *pkg.AppError
 			if errors.As(err, &appErr) {
@@ -106,9 +106,18 @@ func Login(inject *auths.Service) http.HandlerFunc {
 			return
 		}
 
+		cookie := &http.Cookie{
+			Name:     "session_token",
+			Value:    token,
+			Path:     "/",
+			HttpOnly: true,
+		}
+
+		http.SetCookie(w, cookie)
+
 		// success response
 		pkg.JSONResponse(w, http.StatusOK, pkg.Response{
-			Message: "Akun berhasil dibuat",
+			Message: "Login success",
 			Success: true,
 		})
 	}

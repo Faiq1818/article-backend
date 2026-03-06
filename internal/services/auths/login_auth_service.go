@@ -14,20 +14,20 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (s *Service) Login(req requesttype.LoginRequest) error {
+func (s *Service) Login(req requesttype.LoginRequest) (string, error) {
 	// query get user data from req.email
 	user, err := s.Repo.GetUserByEmail(req.Email)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			log.Printf("No user: %v", err)
-			return &pkg.AppError{
+			return "", &pkg.AppError{
 				Message: "User tidak ditemukan",
 				Code:    400,
 				Err:     err,
 			}
 		}
 		log.Printf("Database scan error: %v", err)
-		return &pkg.AppError{
+		return "", &pkg.AppError{
 			Message: "Database error",
 			Code:    500,
 			Err:     err,
@@ -37,7 +37,7 @@ func (s *Service) Login(req requesttype.LoginRequest) error {
 	// check and compare password
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	if err != nil {
-		return &pkg.AppError{
+		return "", &pkg.AppError{
 			Message: "Password salah",
 			Code:    400,
 			Err:     err,
@@ -56,14 +56,15 @@ func (s *Service) Login(req requesttype.LoginRequest) error {
 	token, err := t.SignedString(key)
 	if err != nil {
 		fmt.Println(err)
-		return &pkg.AppError{
+		return "", &pkg.AppError{
 			Message: "Error saat membuat token",
 			Code:    500,
 			Err:     err,
 		}
 	}
-	_ = token
+
+	s.Logger.Info("Login success")
 
 	// response
-	return nil
+	return token, nil
 }

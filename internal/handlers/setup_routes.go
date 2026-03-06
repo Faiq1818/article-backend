@@ -37,6 +37,7 @@ func SetupRoutes(db *sql.DB, validate *validator.Validate, s3Client *s3.Client, 
 		Logger:   logger,
 	}
 
+	authMiddleware := middlewares.AuthMiddleware(logger)
 	// initiate route
 	router := http.NewServeMux()
 
@@ -49,7 +50,8 @@ func SetupRoutes(db *sql.DB, validate *validator.Validate, s3Client *s3.Client, 
 	router.HandleFunc("POST /auth/login", Login(authInject))
 
 	// Admin
-	router.Handle("POST /article", middlewares.AuthMiddleware(SaveArticle(articleInject)))
+	router.Handle("GET /admin/article/{slug}", authMiddleware(GetArticleSlug(articleInject)))
+	router.Handle("POST /article", authMiddleware(SaveArticle(articleInject)))
 	router.HandleFunc("PUT /article/{slug}", PutArticleSlug(articleInject))
 
 	return router
