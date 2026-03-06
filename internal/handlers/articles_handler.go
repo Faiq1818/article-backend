@@ -211,7 +211,7 @@ func PutArticleSlug(inject *article.Service) http.HandlerFunc {
 		}
 
 		// multipart
-		const maxUploadSize = 20 << 20 // 10 MB
+		const maxUploadSize = 20 << 20 // 20 MB
 		err := r.ParseMultipartForm(maxUploadSize)
 		if err != nil {
 			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
@@ -306,7 +306,7 @@ func PutArticleSlug(inject *article.Service) http.HandlerFunc {
 
 		// success response
 		pkg.JSONResponse(w, http.StatusOK, pkg.Response{
-			Message: "Akun berhasil dibuat",
+			Message: "Article updated successfully",
 			Success: true,
 		})
 	}

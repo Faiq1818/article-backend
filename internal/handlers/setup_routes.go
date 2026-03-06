@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	middlewares "article/internal/middlewares"
 	postgres "article/internal/repositories/postgres"
 	s3Repo "article/internal/repositories/s3"
 	article "article/internal/services/articles"
@@ -40,13 +41,16 @@ func SetupRoutes(db *sql.DB, validate *validator.Validate, s3Client *s3.Client, 
 	router := http.NewServeMux()
 
 	// routes
+	// Public
 	router.HandleFunc("GET /article", GetArticle(articleInject))
-	router.HandleFunc("POST /article", SaveArticle(articleInject))
 	router.HandleFunc("GET /article/{slug}", GetArticleSlug(articleInject))
-	router.HandleFunc("PUT /article/{slug}", PutArticleSlug(articleInject))
 
 	router.HandleFunc("POST /auth/register", Register(authInject))
 	router.HandleFunc("POST /auth/login", Login(authInject))
+
+	// Admin
+	router.Handle("POST /article", middlewares.AuthMiddleware(SaveArticle(articleInject)))
+	router.HandleFunc("PUT /article/{slug}", PutArticleSlug(articleInject))
 
 	return router
 }

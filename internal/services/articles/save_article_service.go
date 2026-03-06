@@ -104,7 +104,7 @@ func (s *Service) PutArticle(ctx context.Context, req requesttype.PutArticleRequ
 	cutHash := hash[:5]
 	slugGenerate := slug + "-" + cutHash
 
-	s.Repo.PutArticle(req, imageUrl, slugGenerate, oldSlug)
+	err = s.Repo.PutArticle(req, imageUrl, slugGenerate, oldSlug)
 	if err != nil {
 		statusCode, clientMessage := pkg.ParsePostgresError(err)
 		log.Printf("Error updating article: %v", err)
