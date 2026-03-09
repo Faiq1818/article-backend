@@ -4,6 +4,8 @@ import (
 	"database/sql"
 
 	"article/internal/models"
+
+	"github.com/google/uuid"
 )
 
 type AuthRepository struct {
@@ -32,4 +34,15 @@ func (r *AuthRepository) GetUserByEmail(email string) (*models.User, error) {
 func (r *AuthRepository) CreateUser(user *models.User) error {
 	_, err := r.DB.Exec("INSERT INTO users (id, name, password, email) VALUES ($1, $2, $3, $4);", user.ID, user.Name, user.Password, user.Email)
 	return err
+}
+
+func (r *AuthRepository) CheckUserId(userId uuid.UUID) (bool, error) {
+	var exists bool
+
+	err := r.DB.QueryRow(
+		"SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)",
+		userId,
+	).Scan(&exists)
+
+	return exists, err
 }

@@ -8,6 +8,8 @@ import (
 	pkg "article/internal/pkg"
 	requesttype "article/internal/request_type"
 	auths "article/internal/services/auths"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func Register(inject *auths.Service) http.HandlerFunc {
@@ -119,6 +121,36 @@ func Login(inject *auths.Service) http.HandlerFunc {
 		pkg.JSONResponse(w, http.StatusOK, pkg.Response{
 			Message: "Login success",
 			Success: true,
+		})
+	}
+}
+
+func Me(inject *auths.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userInfo := r.Context().Value("user_info").(jwt.MapClaims)
+
+		userProfile, err := inject.CheckUserAuthorization(userInfo)
+		if err != nil {
+			var appErr *pkg.AppError
+			if errors.As(err, &appErr) {
+				pkg.JSONResponse(w, appErr.Code, pkg.Response{
+					Message: appErr.Message,
+					Success: false,
+				})
+				return
+			}
+
+			pkg.JSONResponse(w, http.StatusInternalServerError, pkg.Response{
+				Message: "Internal server error",
+				Success: false,
+			})
+			return
+		}
+
+		pkg.JSONResponse(w, http.StatusOK, pkg.Response{
+			Message: "Successfully retrieved user profile",
+			Success: true,
+			Data:    userProfile,
 		})
 	}
 }

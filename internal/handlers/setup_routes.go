@@ -48,11 +48,13 @@ func SetupRoutes(db *sql.DB, validate *validator.Validate, s3Client *s3.Client, 
 
 	router.HandleFunc("POST /auth/register", Register(authInject))
 	router.HandleFunc("POST /auth/login", Login(authInject))
+	router.Handle("GET /auth/me", authMiddleware(Me(authInject)))
 
 	// Admin
+	router.Handle("GET /admin/article", authMiddleware(GetArticle(articleInject)))
 	router.Handle("GET /admin/article/{slug}", authMiddleware(GetArticleSlug(articleInject)))
-	router.Handle("POST /article", authMiddleware(SaveArticle(articleInject)))
-	router.HandleFunc("PUT /article/{slug}", PutArticleSlug(articleInject))
+	router.Handle("POST /admin/article", authMiddleware(SaveArticle(articleInject)))
+	router.Handle("PUT /admin/article/{slug}", authMiddleware(PutArticleSlug(articleInject)))
 
 	return router
 }
