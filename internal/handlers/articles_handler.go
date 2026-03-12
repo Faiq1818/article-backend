@@ -10,7 +10,7 @@ import (
 	article "article/internal/services/articles"
 )
 
-func SaveArticle(inject *article.Service) http.HandlerFunc {
+func AdminSaveArticle(inject *article.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
@@ -200,7 +200,7 @@ func GetArticleSlug(inject *article.Service) http.HandlerFunc {
 	}
 }
 
-func PutArticleSlug(inject *article.Service) http.HandlerFunc {
+func AdminPutArticleSlug(inject *article.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		// get slug
@@ -340,7 +340,7 @@ func AdminGetArticles(inject *article.Service) http.HandlerFunc {
 		}
 
 		// bussiness logic
-		articles, err := inject.AdminGetArticlesService(page, limit)
+		articles, meta, err := inject.AdminGetArticlesService(page, limit)
 		if err != nil {
 			var appErr *pkg.AppError
 			if errors.As(err, &appErr) {
@@ -363,7 +363,10 @@ func AdminGetArticles(inject *article.Service) http.HandlerFunc {
 		pkg.JSONResponse(w, http.StatusOK, pkg.Response{
 			Message: "Artikel berhasil didapat",
 			Success: true,
-			Data:    articles,
+			Data: map[string]any{
+				"articles": articles,
+				"meta":     meta,
+			},
 		})
 	}
 }

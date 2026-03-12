@@ -11,5 +11,5 @@ type ArticleRepository interface {
 	SaveArticle(req requesttype.SaveArticleRequest, imgUrl string, slugGenerate string) error
 	PutArticle(req requesttype.PutArticleRequest, imgUrl string, slugGenerate string, oldSlug string) error
 
-	AdminGetManyArticle(limit int, offset int) ([]models.Article, error)
+	AdminGetManyArticle(limit int, offset int) ([]models.Article, int, error)
 }

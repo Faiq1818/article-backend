@@ -116,23 +116,30 @@ func (r *ArticleRepository) PutArticle(req requesttype.PutArticleRequest, imageU
 	return nil
 }
 
-func (r *ArticleRepository) AdminGetManyArticle(limit int, offset int) ([]models.Article, error) {
+func (r *ArticleRepository) AdminGetManyArticle(limit int, offset int) ([]models.Article, int, error) {
+	var total int
+	err := r.DB.QueryRow("SELECT COUNT(slug) FROM article").Scan(&total)
+	if err != nil {
+		return nil, 0, err
+	}
+
 	// query select to db
 	articleData, err := r.DB.Query(`
 		SELECT id, slug, title, description, image_url, created_at, updated_at 
 		FROM article 
 		ORDER BY created_at 
-		DESC
+		DESC 
 		LIMIT $1
 		OFFSET $2
 	`, limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer articleData.Close()
 
 	// build the response
-	var articles []models.Article
+	articles := make([]models.Article, 0)
+
 	for articleData.Next() {
 		var article models.Article
 		err := articleData.Scan(
@@ -145,10 +152,10 @@ func (r *ArticleRepository) AdminGetManyArticle(limit int, offset int) ([]models
 			&article.Updated_at,
 		)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		articles = append(articles, article)
 	}
 
-	return articles, nil
+	return articles, total, nil
 }
