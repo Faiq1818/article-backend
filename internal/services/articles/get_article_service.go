@@ -7,21 +7,44 @@ import (
 	pkg "article/internal/pkg"
 )
 
-func (s *Service) GetArticles(page int, limit int) ([]models.Article, error) {
+func (s *Service) GetArticles(page int, limit int) ([]models.Article, models.PaginationMeta, error) {
+	// set default page and limit if too low
+	if page < 1 {
+		page = 1
+	}
+
+	if limit <= 0 {
+		limit = 10
+	}
+
 	// making the offset
 	offset := (page - 1) * limit
 
-	articles, err := s.Repo.GetManyArticle(limit, offset)
+	articles, total, err := s.Repo.GetManyArticle(limit, offset)
 	if err != nil {
 		s.Logger.Error("failed get articles", "error", err)
-		return []models.Article{}, &pkg.AppError{
+		return []models.Article{}, models.PaginationMeta{}, &pkg.AppError{
 			Message: "Artikel tidak ditemukan",
 			Code:    400,
 			Err:     err,
 		}
 	}
 
-	return articles, nil
+	totalPages := (total + limit - 1) / limit
+
+	hasNext := page < totalPages
+	hasPrev := page > 1
+
+	meta := models.PaginationMeta{
+		CurrentPage: page,
+		Limit:       limit,
+		TotalItems:  total,
+		TotalPages:  totalPages,
+		HasNext:     hasNext,
+		HasPrev:     hasPrev,
+	}
+
+	return articles, meta, nil
 }
 
 func (s *Service) GetArticleSlug(slug string) (models.Article, error) {
@@ -50,11 +73,11 @@ func (s *Service) GetArticleSlug(slug string) (models.Article, error) {
 	return article, nil
 }
 
-func (s *Service) GetAdminArticlesService(page int, limit int) ([]models.Article, error) {
+func (s *Service) AdminGetArticlesService(page int, limit int) ([]models.Article, error) {
 	// making the offset
 	offset := (page - 1) * limit
 
-	articles, err := s.Repo.GetAdminManyArticle(limit, offset)
+	articles, err := s.Repo.AdminGetManyArticle(limit, offset)
 	if err != nil {
 		s.Logger.Error("failed get articles", "error", err)
 		return []models.Article{}, &pkg.AppError{

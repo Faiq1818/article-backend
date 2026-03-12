@@ -6,10 +6,10 @@ import (
 )
 
 type ArticleRepository interface {
-	GetManyArticle(limit int, offset int) ([]models.Article, error)
+	GetManyArticle(limit int, offset int) ([]models.Article, int, error)
 	GetArticleBySlug(slug string) (models.Article, error)
 	SaveArticle(req requesttype.SaveArticleRequest, imgUrl string, slugGenerate string) error
 	PutArticle(req requesttype.PutArticleRequest, imgUrl string, slugGenerate string, oldSlug string) error
 
-	GetAdminManyArticle(limit int, offset int) ([]models.Article, error)
+	AdminGetManyArticle(limit int, offset int) ([]models.Article, error)
 }

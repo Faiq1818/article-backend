@@ -128,7 +128,7 @@ func GetArticles(inject *article.Service) http.HandlerFunc {
 		}
 
 		// bussiness logic
-		articles, err := inject.GetArticles(page, limit)
+		articles, meta, err := inject.GetArticles(page, limit)
 		if err != nil {
 			var appErr *pkg.AppError
 			if errors.As(err, &appErr) {
@@ -151,7 +151,10 @@ func GetArticles(inject *article.Service) http.HandlerFunc {
 		pkg.JSONResponse(w, http.StatusOK, pkg.Response{
 			Message: "Artikel berhasil didapat",
 			Success: true,
-			Data:    articles,
+			Data: map[string]any{
+				"articles": articles,
+				"meta":     meta,
+			},
 		})
 	}
 }
@@ -312,7 +315,7 @@ func PutArticleSlug(inject *article.Service) http.HandlerFunc {
 	}
 }
 
-func GetAdminArticles(inject *article.Service) http.HandlerFunc {
+func AdminGetArticles(inject *article.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// get url params
 		queryParams := r.URL.Query()
@@ -337,7 +340,7 @@ func GetAdminArticles(inject *article.Service) http.HandlerFunc {
 		}
 
 		// bussiness logic
-		articles, err := inject.GetAdminArticlesService(page, limit)
+		articles, err := inject.AdminGetArticlesService(page, limit)
 		if err != nil {
 			var appErr *pkg.AppError
 			if errors.As(err, &appErr) {
