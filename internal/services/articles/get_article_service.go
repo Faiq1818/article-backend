@@ -7,12 +7,7 @@ import (
 	pkg "article/internal/pkg"
 )
 
-type ArticleResponse struct {
-	Message string           `json:"message"`
-	Data    []models.Article `json:"data"`
-}
-
-func (s *Service) GetArticle(page int, limit int) ([]models.Article, error) {
+func (s *Service) GetArticles(page int, limit int) ([]models.Article, error) {
 	// making the offset
 	offset := (page - 1) * limit
 
@@ -53,4 +48,21 @@ func (s *Service) GetArticleSlug(slug string) (models.Article, error) {
 	s.Logger.Info("Get article from slug success")
 
 	return article, nil
+}
+
+func (s *Service) GetAdminArticlesService(page int, limit int) ([]models.Article, error) {
+	// making the offset
+	offset := (page - 1) * limit
+
+	articles, err := s.Repo.GetAdminManyArticle(limit, offset)
+	if err != nil {
+		s.Logger.Error("failed get articles", "error", err)
+		return []models.Article{}, &pkg.AppError{
+			Message: "Artikel tidak ditemukan",
+			Code:    400,
+			Err:     err,
+		}
+	}
+
+	return articles, nil
 }

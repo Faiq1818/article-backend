@@ -19,7 +19,14 @@ func NewArticleRepository(db *sql.DB) *ArticleRepository {
 
 func (r *ArticleRepository) GetManyArticle(limit int, offset int) ([]models.Article, error) {
 	// query select to db
-	articleData, err := r.DB.Query("SELECT id, slug, title, content, description, image_url, updated_at FROM article ORDER BY created_at DESC LIMIT $1 OFFSET $2", limit, offset)
+	articleData, err := r.DB.Query(`
+		SELECT slug, title, description, image_url, created_at, updated_at 
+		FROM article 
+		ORDER BY created_at 
+		DESC 
+		LIMIT $1
+		OFFSET $2
+	`, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -30,12 +37,11 @@ func (r *ArticleRepository) GetManyArticle(limit int, offset int) ([]models.Arti
 	for articleData.Next() {
 		var article models.Article
 		err := articleData.Scan(
-			&article.ID,
 			&article.Slug,
 			&article.Title,
-			&article.Content,
 			&article.Description,
 			&article.Image_url,
+			&article.Created_at,
 			&article.Updated_at,
 		)
 		if err != nil {
@@ -49,7 +55,11 @@ func (r *ArticleRepository) GetManyArticle(limit int, offset int) ([]models.Arti
 
 func (r *ArticleRepository) GetArticleBySlug(slug string) (models.Article, error) {
 	// query select to db
-	articleData := r.DB.QueryRow("SELECT updated_at, id, slug, title, description, content, image_url FROM article WHERE slug = $1", slug)
+	articleData := r.DB.QueryRow(`
+		SELECT updated_at, id, slug, title, description, content, image_url
+		FROM article
+		WHERE slug = $1
+	`, slug)
 
 	var article models.Article
 	err := articleData.Scan(
@@ -71,7 +81,10 @@ func (r *ArticleRepository) GetArticleBySlug(slug string) (models.Article, error
 func (r *ArticleRepository) SaveArticle(req requesttype.SaveArticleRequest, imageUrl string, slugGenerate string) error {
 	// db push
 	u := uuid.New()
-	_, err := r.DB.Exec("INSERT INTO article (id, title, slug, description, content, image_url) VALUES ($1, $2, $3, $4, $5, $6);", u, req.Title, slugGenerate, req.Description, req.Content, imageUrl)
+	_, err := r.DB.Exec(`
+		INSERT INTO article (id, title, slug, description, content, image_url) 
+		VALUES ($1, $2, $3, $4, $5, $6);
+	`, u, req.Title, slugGenerate, req.Description, req.Content, imageUrl)
 	if err != nil {
 		return err
 	}
@@ -94,4 +107,41 @@ func (r *ArticleRepository) PutArticle(req requesttype.PutArticleRequest, imageU
 	}
 
 	return nil
+}
+
+func (r *ArticleRepository) GetAdminManyArticle(limit int, offset int) ([]models.Article, error) {
+	// query select to db
+	articleData, err := r.DB.Query(`
+		SELECT id, slug, title, description, image_url, created_at, updated_at 
+		FROM article 
+		ORDER BY created_at 
+		DESC
+		LIMIT $1
+		OFFSET $2
+	`, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer articleData.Close()
+
+	// build the response
+	var articles []models.Article
+	for articleData.Next() {
+		var article models.Article
+		err := articleData.Scan(
+			&article.ID,
+			&article.Slug,
+			&article.Title,
+			&article.Description,
+			&article.Image_url,
+			&article.Created_at,
+			&article.Updated_at,
+		)
+		if err != nil {
+			return nil, err
+		}
+		articles = append(articles, article)
+	}
+
+	return articles, nil
 }

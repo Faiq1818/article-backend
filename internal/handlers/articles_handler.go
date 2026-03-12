@@ -103,7 +103,7 @@ func SaveArticle(inject *article.Service) http.HandlerFunc {
 	}
 }
 
-func GetArticle(inject *article.Service) http.HandlerFunc {
+func GetArticles(inject *article.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// get url params
 		queryParams := r.URL.Query()
@@ -128,7 +128,7 @@ func GetArticle(inject *article.Service) http.HandlerFunc {
 		}
 
 		// bussiness logic
-		articles, err := inject.GetArticle(page, limit)
+		articles, err := inject.GetArticles(page, limit)
 		if err != nil {
 			var appErr *pkg.AppError
 			if errors.As(err, &appErr) {
@@ -308,6 +308,59 @@ func PutArticleSlug(inject *article.Service) http.HandlerFunc {
 		pkg.JSONResponse(w, http.StatusOK, pkg.Response{
 			Message: "Article updated successfully",
 			Success: true,
+		})
+	}
+}
+
+func GetAdminArticles(inject *article.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// get url params
+		queryParams := r.URL.Query()
+
+		// convert limit and page params to integer
+		limit, err := strconv.Atoi(queryParams.Get("limit"))
+		if err != nil {
+			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+				Message: "Parameter limit tidak valid",
+				Success: false,
+			})
+			return
+		}
+
+		page, err := strconv.Atoi(queryParams.Get("page"))
+		if err != nil || page < 1 {
+			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+				Message: "Parameter page tidak valid",
+				Success: false,
+			})
+			return
+		}
+
+		// bussiness logic
+		articles, err := inject.GetAdminArticlesService(page, limit)
+		if err != nil {
+			var appErr *pkg.AppError
+			if errors.As(err, &appErr) {
+				pkg.JSONResponse(w, appErr.Code, pkg.Response{
+					Message: appErr.Message,
+					Success: false,
+				})
+				return
+			}
+
+			// fallback unknown error
+			pkg.JSONResponse(w, http.StatusInternalServerError, pkg.Response{
+				Message: "internal server error",
+				Success: false,
+			})
+			return
+		}
+
+		// success response
+		pkg.JSONResponse(w, http.StatusOK, pkg.Response{
+			Message: "Artikel berhasil didapat",
+			Success: true,
+			Data:    articles,
 		})
 	}
 }
