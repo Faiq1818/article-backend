@@ -54,6 +54,18 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Connection pool settings
+	db.SetMaxOpenConns(25)
+	db.SetMaxIdleConns(10)
+	db.SetConnMaxLifetime(5 * time.Minute)
+	db.SetConnMaxIdleTime(1 * time.Minute)
+
+	logger.Info("DB connection pool configured",
+		"max_open_conns", 25,
+		"max_idle_conns", 10,
+		"conn_max_lifetime", 5*time.Minute,
+		"conn_max_idle_time", 1*time.Minute)
+
 	// initialize s3
 	cfg, err := config.LoadDefaultConfig(
 		ctx,
