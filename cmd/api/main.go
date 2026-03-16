@@ -6,6 +6,8 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	handlers "article/internal/handlers"
@@ -24,7 +26,9 @@ import (
 )
 
 func main() {
-	ctx := context.Background()
+	// Graceful shutdown setup
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
 	// initiate log/slog
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
@@ -86,7 +90,6 @@ func main() {
 		port = "8000"
 	}
 
-	// Wrapping up the mux inside the corsMiddleware so it can smuggle the cors header
 	srv := &http.Server{
 		Addr:         ":" + port,
 		Handler:      middlewares.CORSMiddleware(mux),
@@ -95,9 +98,23 @@ func main() {
 		IdleTimeout:  60 * time.Second,
 	}
 
-	err = srv.ListenAndServe()
-	if err != nil {
-		logger.Error("Server failed to start", "error", err)
-		os.Exit(1)
+	go func() {
+		logger.Info("Server starting on port " + port)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Error("Server failed", "error", err)
+			os.Exit(1)
+		}
+	}()
+
+	<-ctx.Done()
+	logger.Info("Shutting down server...")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		logger.Error("Server shutdown failed", "error", err)
 	}
+
+	logger.Info("Server stopped gracefully")
 }
