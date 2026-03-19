@@ -54,7 +54,7 @@ func (s *Service) SaveArticle(ctx context.Context, req requesttype.SaveArticleRe
 	cutHash := hash[:5]
 	slugGenerate := slug + "-" + cutHash
 
-	s.Repo.SaveArticle(req, imageUrl, slugGenerate)
+	err = s.Repo.SaveArticle(req, imageUrl, slugGenerate)
 	if err != nil {
 		statusCode, clientMessage := pkg.ParsePostgresError(err)
 		log.Printf("Error inserting article: %v", err)
