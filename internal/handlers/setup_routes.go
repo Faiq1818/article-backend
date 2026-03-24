@@ -55,6 +55,7 @@ func SetupRoutes(db *sql.DB, validate *validator.Validate, s3Client *s3.Client, 
 	router.Handle("GET /admin/article/{slug}", authMiddleware(GetArticleSlug(articleInject)))
 	router.Handle("POST /admin/article", authMiddleware(AdminSaveArticle(articleInject)))
 	router.Handle("PUT /admin/article/{slug}", authMiddleware(AdminPutArticleSlug(articleInject)))
+	router.Handle("DELETE /admin/article/{slug}", authMiddleware(AdminDeleteArticleSlug(articleInject)))
 
 	return router
 }

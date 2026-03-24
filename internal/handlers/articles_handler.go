@@ -370,3 +370,39 @@ func AdminGetArticles(inject *article.Service) http.HandlerFunc {
 		})
 	}
 }
+
+func AdminDeleteArticleSlug(inject *article.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		slug := r.PathValue("slug")
+		if slug == "" {
+			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+				Message: "Article slug is required",
+				Success: false,
+			})
+			return
+		}
+
+		err := inject.DeleteArticle(slug)
+		if err != nil {
+			var appErr *pkg.AppError
+			if errors.As(err, &appErr) {
+				pkg.JSONResponse(w, appErr.Code, pkg.Response{
+					Message: appErr.Message,
+					Success: false,
+				})
+				return
+			}
+
+			pkg.JSONResponse(w, http.StatusInternalServerError, pkg.Response{
+				Message: "internal server error",
+				Success: false,
+			})
+			return
+		}
+
+		pkg.JSONResponse(w, http.StatusOK, pkg.Response{
+			Message: "Article successfully deleted",
+			Success: true,
+		})
+	}
+}

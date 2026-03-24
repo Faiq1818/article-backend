@@ -116,6 +116,18 @@ func (r *ArticleRepository) PutArticle(req requesttype.PutArticleRequest, imageU
 	return nil
 }
 
+func (r *ArticleRepository) DeleteArticle(slug string) error {
+	_, err := r.DB.Exec(`
+		DELETE FROM article 
+		WHERE slug = $1;
+	`, slug)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *ArticleRepository) AdminGetManyArticle(limit int, offset int) ([]models.Article, int, error) {
 	var total int
 	err := r.DB.QueryRow("SELECT COUNT(slug) FROM article").Scan(&total)

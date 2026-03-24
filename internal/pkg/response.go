@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"encoding/json"
+	// "log"
 	"net/http"
 )
 
@@ -15,7 +16,10 @@ func JSONResponse(w http.ResponseWriter, status int, data any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 
-	json.NewEncoder(w).Encode(data)
+	err := json.NewEncoder(w).Encode(data)
+	if err != nil {
+		// log.Printf("error encoding JSON: %v", err)
+	}
 }
 
 type AppError struct {
