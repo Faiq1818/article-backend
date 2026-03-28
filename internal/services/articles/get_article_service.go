@@ -9,7 +9,7 @@ import (
 
 func (s *Service) GetArticles(page int, limit int) ([]models.Article, models.PaginationMeta, error) {
 	// set default page and limit if too low
-	p := pkg.Pagination{
+	p := &pkg.Pagination{
 		Page:  page,
 		Limit: limit,
 	}
@@ -59,7 +59,7 @@ func (s *Service) GetArticleSlug(slug string) (models.Article, error) {
 }
 
 func (s *Service) AdminGetArticlesService(page int, limit int) ([]models.Article, models.PaginationMeta, error) {
-	p := pkg.Pagination{
+	p := &pkg.Pagination{
 		Page:  page,
 		Limit: limit,
 	}
