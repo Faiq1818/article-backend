@@ -74,41 +74,25 @@ func (s *Service) GetArticleSlug(slug string) (models.Article, error) {
 }
 
 func (s *Service) AdminGetArticlesService(page int, limit int) ([]models.Article, models.PaginationMeta, error) {
-	// set default page and limit if too low
-	if page < 1 {
-		page = 1
+	p := pkg.Pagination{
+		Page:  page,
+		Limit: limit,
 	}
 
-	if limit <= 0 {
-		limit = 10
-	}
+	p.Normalize()
+	offset := p.MakeOffset()
 
-	// making the offset
-	offset := (page - 1) * limit
-
-	articles, total, err := s.Repo.AdminGetManyArticle(limit, offset)
+	articles, total, err := s.Repo.AdminGetManyArticle(p.Limit, offset)
 	if err != nil {
 		s.Logger.Error("failed get articles", "error", err)
 		return []models.Article{}, models.PaginationMeta{}, &pkg.AppError{
-			Message: "Artikel tidak ditemukan",
+			Message: "Article not found",
 			Code:    400,
 			Err:     err,
 		}
 	}
 
-	totalPages := (total + limit - 1) / limit
-
-	hasNext := page < totalPages
-	hasPrev := page > 1
-
-	meta := models.PaginationMeta{
-		CurrentPage: page,
-		Limit:       limit,
-		TotalItems:  total,
-		TotalPages:  totalPages,
-		HasNext:     hasNext,
-		HasPrev:     hasPrev,
-	}
+	meta := p.Pagination(total)
 
 	return articles, meta, nil
 }
