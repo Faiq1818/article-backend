@@ -92,7 +92,7 @@ func (s *Service) AdminGetArticlesService(page int, limit int) ([]models.Article
 		}
 	}
 
-	meta := p.Pagination(total)
+	meta := p.MakeMeta(total)
 
 	return articles, meta, nil
 }

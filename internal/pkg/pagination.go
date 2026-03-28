@@ -36,12 +36,12 @@ func (p *Pagination) MakeOffset() int {
 	return offset
 }
 
-// Pagination computes metadata for the current result set based on the total record count.
+// MakeMeta computes metadata for the current result set based on the total record count.
 // It calculates the total number of pages and determines the existence of adjacent pages.
 //
 // Parameters:
 //   - total: The total number of records available in the dataset.
-func (p *Pagination) Pagination(total int) models.PaginationMeta {
+func (p *Pagination) MakeMeta(total int) models.PaginationMeta {
 	totalPages := (total + p.Limit - 1) / p.Limit
 
 	hasNext := p.Page < totalPages
