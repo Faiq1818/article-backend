@@ -9,16 +9,13 @@ import (
 
 func (s *Service) GetArticles(page int, limit int) ([]models.Article, models.PaginationMeta, error) {
 	// set default page and limit if too low
-	if page < 1 {
-		page = 1
+	p := pkg.Pagination{
+		Page:  page,
+		Limit: limit,
 	}
 
-	if limit <= 0 {
-		limit = 10
-	}
-
-	// making the offset
-	offset := (page - 1) * limit
+	p.Normalize()
+	offset := p.MakeOffset()
 
 	articles, total, err := s.Repo.GetManyArticle(limit, offset)
 	if err != nil {
@@ -30,19 +27,7 @@ func (s *Service) GetArticles(page int, limit int) ([]models.Article, models.Pag
 		}
 	}
 
-	totalPages := (total + limit - 1) / limit
-
-	hasNext := page < totalPages
-	hasPrev := page > 1
-
-	meta := models.PaginationMeta{
-		CurrentPage: page,
-		Limit:       limit,
-		TotalItems:  total,
-		TotalPages:  totalPages,
-		HasNext:     hasNext,
-		HasPrev:     hasPrev,
-	}
+	meta := p.MakeMeta(total)
 
 	return articles, meta, nil
 }
