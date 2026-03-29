@@ -3,7 +3,7 @@ package postgres
 import (
 	"database/sql"
 
-	"article/internal/models"
+	models "article/internal/models"
 
 	"github.com/google/uuid"
 )

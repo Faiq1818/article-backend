@@ -1,10 +1,20 @@
 package repositories
 
 import (
-	"article/internal/models"
-	requesttype "article/internal/request_type"
 	"context"
+	"io"
+
+	models "article/internal/models"
+	requesttype "article/internal/request_type"
+
+	"github.com/google/uuid"
 )
+
+type AuthRepository interface {
+	GetUserByEmail(email string) (*models.User, error)
+	CreateUser(u *models.User) error
+	CheckUserId(id uuid.UUID) (bool, error)
+}
 
 type ArticleRepository interface {
 	GetManyArticle(limit int, offset int) ([]models.Article, int, error)
@@ -14,4 +24,9 @@ type ArticleRepository interface {
 	DeleteArticle(slug string) error
 
 	AdminGetManyArticle(limit int, offset int) ([]models.Article, int, error)
+}
+
+type S3Repository interface {
+	// GetUserByEmail(email string) (*models.User, error)
+	UploadObject(ctx context.Context, key string, fileBody io.Reader) (string, error)
 }

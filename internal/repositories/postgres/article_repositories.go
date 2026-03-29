@@ -1,10 +1,10 @@
 package postgres
 
 import (
-	"article/internal/models"
 	"context"
 	"database/sql"
 
+	models "article/internal/models"
 	requesttype "article/internal/request_type"
 
 	"github.com/google/uuid"
