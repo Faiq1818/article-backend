@@ -2,44 +2,12 @@ package article
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/sha256"
-	"encoding/hex"
 	"log"
 	"strings"
 
 	pkg "article/internal/pkg"
 	requesttype "article/internal/request_type"
 )
-
-const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
-func randomHash() (string, error) {
-	randomBytes := make([]byte, 32)
-
-	_, err := rand.Read(randomBytes)
-	if err != nil {
-		return "", err
-	}
-	hash := sha256.Sum256(randomBytes)
-
-	return string(hex.EncodeToString(hash[:])), nil
-}
-
-func slugGeneratre(baseText string) (string, error) {
-	hash, err := randomHash()
-	if err != nil {
-		return "", err
-	}
-
-	// generate slug and title
-	slug := strings.ReplaceAll(baseText, " ", "-")
-	slug = strings.ToLower(slug)
-	cutHash := hash[:5]
-	slugGenerate := slug + "-" + cutHash
-
-	return slugGenerate, nil
-}
 
 func (s *Service) SaveArticle(ctx context.Context, req requesttype.SaveArticleRequest, ext string) error {
 	// img s3 upload
@@ -50,9 +18,10 @@ func (s *Service) SaveArticle(ctx context.Context, req requesttype.SaveArticleRe
 	defer srcFile.Close() // prevent memori leak in service layer
 
 	// generate image name
-	hash, err := randomHash()
+	hash, err := pkg.RandomHash()
 	if err != nil {
 		s.Logger.Warn("Hashing error")
+		return &pkg.AppError{Message: "Failed to generate image key", Code: 500, Err: err}
 	}
 	objectKey := "articles/" + hash + ext
 
@@ -64,16 +33,16 @@ func (s *Service) SaveArticle(ctx context.Context, req requesttype.SaveArticleRe
 	}
 
 	// generate slug and title
-	slug, err := slugGeneratre(req.Title)
+	slug, err := pkg.SlugGenerate(req.Title)
 	if err != nil {
-		s.Logger.Error("Slug Generate Error", "err: ", err)
-		return &pkg.AppError{Message: "Failed to upload image", Code: 500, Err: err}
+		s.Logger.Error("Slug Generate Error", "err", err)
+		return &pkg.AppError{Message: "Failed to generate slug", Code: 500, Err: err}
 	}
 
 	err = s.Repo.SaveArticle(req, imageUrl, slug)
 	if err != nil {
 		statusCode, clientMessage := pkg.ParsePostgresError(err)
-		s.Logger.Error("Error inserting article", "err: ", err)
+		s.Logger.Error("Error inserting article", "err", err)
 
 		return &pkg.AppError{
 			Message: clientMessage,
@@ -90,7 +59,7 @@ func (s *Service) PutArticle(ctx context.Context, req requesttype.PutArticleRequ
 	// img s3 upload
 
 	// generate image name
-	hash, err := randomHash()
+	hash, err := pkg.RandomHash()
 	if err != nil {
 		s.Logger.Warn("Hashing error")
 	}
