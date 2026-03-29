@@ -21,7 +21,7 @@ func (s *Service) GetArticles(page int, limit int) ([]models.Article, models.Pag
 	if err != nil {
 		s.Logger.Error("failed get articles", "error", err)
 		return []models.Article{}, models.PaginationMeta{}, &pkg.AppError{
-			Message: "Artikel tidak ditemukan",
+			Message: "Article not found",
 			Code:    400,
 			Err:     err,
 		}
@@ -39,7 +39,7 @@ func (s *Service) GetArticleSlug(slug string) (models.Article, error) {
 		if err == sql.ErrNoRows {
 			s.Logger.Info("Article not found", "error", err)
 			return models.Article{}, &pkg.AppError{
-				Message: "Artikel tidak ditemukan",
+				Message: "Article not found",
 				Code:    400,
 				Err:     err,
 			}

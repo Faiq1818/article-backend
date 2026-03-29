@@ -58,7 +58,7 @@ func Register(inject *auths.Service) http.HandlerFunc {
 
 		// success response
 		pkg.JSONResponse(w, http.StatusOK, pkg.Response{
-			Message: "Akun berhasil dibuat",
+			Message: "Account created successfully",
 			Success: true,
 		})
 	}

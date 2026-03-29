@@ -7,7 +7,7 @@ func (s *Service) DeleteArticle(slug string) error {
 	if err != nil {
 		s.Logger.Error("failed delete article", "error", err)
 		return &pkg.AppError{
-			Message: "Gagal menghapus artikel",
+			Message: "Failed to delete article",
 			Code:    500,
 			Err:     err,
 		}

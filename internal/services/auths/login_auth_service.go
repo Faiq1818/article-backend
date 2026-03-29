@@ -21,7 +21,7 @@ func (s *Service) Login(req requesttype.LoginRequest) (string, error) {
 		if err == sql.ErrNoRows {
 			log.Printf("No user: %v", err)
 			return "", &pkg.AppError{
-				Message: "User tidak ditemukan",
+				Message: "User not found",
 				Code:    400,
 				Err:     err,
 			}
@@ -38,7 +38,7 @@ func (s *Service) Login(req requesttype.LoginRequest) (string, error) {
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	if err != nil {
 		return "", &pkg.AppError{
-			Message: "Password salah",
+			Message: "Incorrect password",
 			Code:    400,
 			Err:     err,
 		}
@@ -57,7 +57,7 @@ func (s *Service) Login(req requesttype.LoginRequest) (string, error) {
 	if err != nil {
 		fmt.Println(err)
 		return "", &pkg.AppError{
-			Message: "Error saat membuat token",
+			Message: "Failed to generate token",
 			Code:    500,
 			Err:     err,
 		}

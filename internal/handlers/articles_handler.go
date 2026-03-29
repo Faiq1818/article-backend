@@ -28,7 +28,7 @@ func AdminSaveArticle(inject *article.Service) http.HandlerFunc {
 		file, header, err := r.FormFile("image")
 		if err != nil {
 			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
-				Message: "Image file is missing or invalid",
+				Message: "Invalid limit parameter",
 				Success: false,
 			})
 			return
@@ -58,7 +58,7 @@ func AdminSaveArticle(inject *article.Service) http.HandlerFunc {
 		srcFile, err := req.Image.Open()
 		if err != nil {
 			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
-				Message: "Gagal membuka file",
+				Message: "Failed to open file",
 				Success: false,
 			})
 			return
@@ -69,7 +69,7 @@ func AdminSaveArticle(inject *article.Service) http.HandlerFunc {
 		ext, err := pkg.DetectImageExtension(srcFile)
 		if err != nil {
 			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
-				Message: "File harus berupa gambar (.jpg, .jpeg, .png, .webp, .gif)",
+				Message: "File must be an image (.jpg, .jpeg, .png, .webp, .gif)",
 				Success: false,
 			})
 			return
@@ -97,7 +97,7 @@ func AdminSaveArticle(inject *article.Service) http.HandlerFunc {
 
 		// success response
 		pkg.JSONResponse(w, http.StatusOK, pkg.Response{
-			Message: "Akun berhasil dibuat",
+			Message: "Article created successfully",
 			Success: true,
 		})
 	}
@@ -112,7 +112,7 @@ func GetArticles(inject *article.Service) http.HandlerFunc {
 		limit, err := strconv.Atoi(queryParams.Get("limit"))
 		if err != nil {
 			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
-				Message: "Parameter limit tidak valid",
+				Message: "Invalid limit parameter",
 				Success: false,
 			})
 			return
@@ -121,7 +121,7 @@ func GetArticles(inject *article.Service) http.HandlerFunc {
 		page, err := strconv.Atoi(queryParams.Get("page"))
 		if err != nil || page < 1 {
 			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
-				Message: "Parameter page tidak valid",
+				Message: "Invalid page parameter",
 				Success: false,
 			})
 			return
@@ -149,7 +149,7 @@ func GetArticles(inject *article.Service) http.HandlerFunc {
 
 		// success response
 		pkg.JSONResponse(w, http.StatusOK, pkg.Response{
-			Message: "Artikel berhasil didapat",
+			Message: "Article retrieved successfully",
 			Success: true,
 			Data: map[string]any{
 				"articles": articles,
@@ -193,7 +193,7 @@ func GetArticleSlug(inject *article.Service) http.HandlerFunc {
 
 		// success response
 		pkg.JSONResponse(w, http.StatusOK, pkg.Response{
-			Message: "Artikel berhasil didapat",
+			Message: "Article retrieved successfully",
 			Success: true,
 			Data:    articles,
 		})
@@ -265,7 +265,7 @@ func AdminPutArticleSlug(inject *article.Service) http.HandlerFunc {
 			srcFile, err := req.Image.Open()
 			if err != nil {
 				pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
-					Message: "Gagal membuka file",
+					Message: "Failed to open file",
 					Success: false,
 				})
 				return
@@ -277,7 +277,7 @@ func AdminPutArticleSlug(inject *article.Service) http.HandlerFunc {
 			ext = &detectedExt
 			if err != nil {
 				pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
-					Message: "File harus berupa gambar (.jpg, .jpeg, .png, .webp, .gif)",
+					Message: "File must be an image (.jpg, .jpeg, .png, .webp, .gif)",
 					Success: false,
 				})
 				return
@@ -324,7 +324,7 @@ func AdminGetArticles(inject *article.Service) http.HandlerFunc {
 		limit, err := strconv.Atoi(queryParams.Get("limit"))
 		if err != nil {
 			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
-				Message: "Parameter limit tidak valid",
+				Message: "Invalid limit parameter",
 				Success: false,
 			})
 			return
@@ -333,7 +333,7 @@ func AdminGetArticles(inject *article.Service) http.HandlerFunc {
 		page, err := strconv.Atoi(queryParams.Get("page"))
 		if err != nil || page < 1 {
 			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
-				Message: "Parameter page tidak valid",
+				Message: "Invalid page parameter",
 				Success: false,
 			})
 			return
@@ -361,7 +361,7 @@ func AdminGetArticles(inject *article.Service) http.HandlerFunc {
 
 		// success response
 		pkg.JSONResponse(w, http.StatusOK, pkg.Response{
-			Message: "Artikel berhasil didapat",
+			Message: "Article retrieved successfully",
 			Success: true,
 			Data: map[string]any{
 				"articles": articles,

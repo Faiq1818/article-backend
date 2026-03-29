@@ -33,7 +33,7 @@ func (s *Service) Register(req requesttype.RegisterRequest) error {
 	if err != nil {
 		s.Logger.Error("Error when push new user to db", "err", err)
 		return &pkg.AppError{
-			Message: "Akun gagal dibuat, pastikan email unik",
+			Message: "Failed to create account, ensure email is unique",
 			Code:    500,
 			Err:     err,
 		}
