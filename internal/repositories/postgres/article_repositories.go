@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"article/internal/models"
+	"context"
 	"database/sql"
 
 	requesttype "article/internal/request_type"
@@ -85,10 +86,10 @@ func (r *ArticleRepository) GetArticleBySlug(slug string) (models.Article, error
 	return article, nil
 }
 
-func (r *ArticleRepository) SaveArticle(req requesttype.SaveArticleRequest, imageUrl string, slugGenerate string) error {
+func (r *ArticleRepository) SaveArticle(ctx context.Context, req requesttype.SaveArticleRequest, imageUrl string, slugGenerate string) error {
 	// db push
 	u := uuid.New()
-	_, err := r.DB.Exec(`
+	_, err := r.DB.ExecContext(ctx, `
 		INSERT INTO article (id, title, slug, description, content, image_url) 
 		VALUES ($1, $2, $3, $4, $5, $6);
 	`, u, req.Title, slugGenerate, req.Description, req.Content, imageUrl)

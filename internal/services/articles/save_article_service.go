@@ -39,7 +39,7 @@ func (s *Service) SaveArticle(ctx context.Context, req requesttype.SaveArticleRe
 		return &pkg.AppError{Message: "Failed to generate slug", Code: 500, Err: err}
 	}
 
-	err = s.Repo.SaveArticle(req, imageUrl, slug)
+	err = s.Repo.SaveArticle(ctx, req, imageUrl, slug)
 	if err != nil {
 		statusCode, clientMessage := pkg.ParsePostgresError(err)
 		s.Logger.Error("Error inserting article", "err", err)
