@@ -26,12 +26,10 @@ func SetupRoutes(db *sql.DB, validate *validator.Validate, s3Client *s3.Client, 
 	authInject := &auths.Service{
 		Repo:     authRepo,
 		Validate: validate,
-		S3Client: s3Client,
 		Logger:   logger,
 	}
 	articleInject := &article.Service{
 		Repo:     articleRepo,
-		DB:       db,
 		Validate: validate,
 		S3Repo:   s3Repo,
 		Logger:   logger,

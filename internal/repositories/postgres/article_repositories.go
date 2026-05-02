@@ -37,7 +37,7 @@ func (r *ArticleRepository) GetManyArticle(limit int, offset int) ([]models.Arti
 	if err != nil {
 		return nil, 0, err
 	}
-	defer articleData.Close()
+	defer func() { _ = articleData.Close() }()
 
 	// build the response
 	articles := make([]models.Article, 0)
@@ -148,7 +148,7 @@ func (r *ArticleRepository) AdminGetManyArticle(limit int, offset int) ([]models
 	if err != nil {
 		return nil, 0, err
 	}
-	defer articleData.Close()
+	defer func() { _ = articleData.Close() }()
 
 	// build the response
 	articles := make([]models.Article, 0)

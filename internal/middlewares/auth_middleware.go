@@ -12,6 +12,10 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+type contextKey string
+
+const UserInfoKey contextKey = "user_info"
+
 func ValidateToken(tokenString string) (*jwt.Token, error) {
 	key := []byte(os.Getenv("JWT_SECRET"))
 
@@ -87,7 +91,7 @@ func AuthMiddleware(logger *slog.Logger) func(http.Handler) http.Handler {
 			}
 
 			claims, _ := GetClaims(token)
-			ctx := context.WithValue(r.Context(), "user_info", claims)
+			ctx := context.WithValue(r.Context(), UserInfoKey, claims)
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})

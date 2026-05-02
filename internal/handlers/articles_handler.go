@@ -33,7 +33,7 @@ func AdminSaveArticle(inject *article.Service) http.HandlerFunc {
 			})
 			return
 		}
-		defer file.Close() // preventing file descriptor leak
+		defer func() { _ = file.Close() }()
 
 		// decode body
 		req := requesttype.SaveArticleRequest{
@@ -63,7 +63,7 @@ func AdminSaveArticle(inject *article.Service) http.HandlerFunc {
 			})
 			return
 		}
-		defer srcFile.Close()
+		defer func() { _ = srcFile.Close() }()
 
 		// detect image extension
 		ext, err := pkg.DetectImageExtension(srcFile)
@@ -237,7 +237,7 @@ func AdminPutArticleSlug(inject *article.Service) http.HandlerFunc {
 				return
 			}
 		} else {
-			defer file.Close() // preventing file descriptor leak
+			defer func() { _ = file.Close() }()
 		}
 
 		// decode body
@@ -270,7 +270,7 @@ func AdminPutArticleSlug(inject *article.Service) http.HandlerFunc {
 				})
 				return
 			}
-			defer srcFile.Close()
+			defer func() { _ = srcFile.Close() }()
 
 			// detect image extension
 			detectedExt, err := pkg.DetectImageExtension(file)

@@ -15,7 +15,7 @@ func (s *Service) SaveArticle(ctx context.Context, req requesttype.SaveArticleRe
 	if err != nil {
 		return &pkg.AppError{Message: "Failed to read image file", Code: 400, Err: err}
 	}
-	defer srcFile.Close() // prevent memori leak in service layer
+	defer func() { _ = srcFile.Close() }()
 
 	// generate image name
 	hash, err := pkg.RandomHash()
@@ -70,7 +70,7 @@ func (s *Service) PutArticle(ctx context.Context, req requesttype.PutArticleRequ
 		if err != nil {
 			return &pkg.AppError{Message: "Failed to read image file", Code: 400, Err: err}
 		}
-		defer srcFile.Close() // prevent memori leak in service layer
+		defer func() { _ = srcFile.Close() }()
 
 		objectKey := "articles/" + hash + *ext
 

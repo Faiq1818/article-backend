@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"article/internal/middlewares"
 	pkg "article/internal/pkg"
 	requesttype "article/internal/request_type"
 	auths "article/internal/services/auths"
@@ -127,7 +128,7 @@ func Login(inject *auths.Service) http.HandlerFunc {
 
 func Me(inject *auths.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userInfo := r.Context().Value("user_info").(jwt.MapClaims)
+		userInfo := r.Context().Value(middlewares.UserInfoKey).(jwt.MapClaims)
 
 		userProfile, err := inject.CheckUserAuthorization(userInfo)
 		if err != nil {

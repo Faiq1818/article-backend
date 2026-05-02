@@ -55,12 +55,9 @@ func main() {
 }
 
 func run(logger *slog.Logger) error {
-	// This is meant to initialize context.Background() and listen for os.Interrupt
-	// and syscall.SIGTERM. If any signal is caught, the context will notify itself.
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	// get env
 	err := godotenv.Load()
 	if err != nil {
 		logger.Error("Get env failed", "error", err)
@@ -69,15 +66,18 @@ func run(logger *slog.Logger) error {
 
 	connStr := os.Getenv("DATABASE_URL_CLIENT")
 
-	// open postgres db connection
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		logger.Error("Database open failed", "error", err)
 		return err
 	}
-	defer db.Close()
+	defer func() {
+		err := db.Close()
+		if err != nil {
+			logger.Error("Failed to close database", "error", err)
+		}
+	}()
 
-	// Connection pool settings
 	db.SetMaxOpenConns(25)
 	db.SetMaxIdleConns(10)
 	db.SetConnMaxLifetime(5 * time.Minute)
@@ -98,7 +98,6 @@ func run(logger *slog.Logger) error {
 		return err
 	}
 
-	// initialize s3
 	cfg, err := config.LoadDefaultConfig(
 		ctx,
 		config.WithRegion(os.Getenv("S3_REGION")),
@@ -119,19 +118,15 @@ func run(logger *slog.Logger) error {
 		return err
 	}
 
-	// s3 manager helper initiate
 	s3Uploader := manager.NewUploader(s3Client)
 
-	// validator initiate
 	validate := validator.New(validator.WithRequiredStructEnabled())
 
-	// routes initiate
 	mux := handlers.SetupRoutes(db, validate, s3Client, s3Uploader, logger)
 
 	// swagger
 	mux.Handle("GET /swagger/", httpSwagger.WrapHandler)
 
-	// server listen
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8000"
