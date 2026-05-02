@@ -18,6 +18,10 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 
+	_ "article/docs"
+
+	httpSwagger "github.com/swaggo/http-swagger"
+
 	// aws-sdk-go-v2 s3 lib
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -25,6 +29,20 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
+// @title Swagger Example API
+// @version 1.0
+// @description This is a sample server Petstore server.
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host localhost:8000
+// @BasePath /
 func main() {
 	// initiate log/slog
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
@@ -109,6 +127,9 @@ func run(logger *slog.Logger) error {
 
 	// routes initiate
 	mux := handlers.SetupRoutes(db, validate, s3Client, s3Uploader, logger)
+
+	// swagger
+	mux.Handle("GET /swagger/", httpSwagger.WrapHandler)
 
 	// server listen
 	port := os.Getenv("PORT")
