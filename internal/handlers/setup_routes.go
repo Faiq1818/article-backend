@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	appconfig "article/internal/config"
 	middlewares "article/internal/middlewares"
 	postgres "article/internal/repositories/postgres"
 	s3Repo "article/internal/repositories/s3"
@@ -16,7 +17,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func SetupRoutes(db *sql.DB, validate *validator.Validate, s3Client *s3.Client, s3Uploader *manager.Uploader, logger *slog.Logger) *http.ServeMux {
+func SetupRoutes(db *sql.DB, validate *validator.Validate, s3Client *s3.Client, s3Uploader *manager.Uploader, logger *slog.Logger, cfg *appconfig.Config) *http.ServeMux {
 	// Repository db initiate
 	authRepo := postgres.NewAuthRepository(db)
 	articleRepo := postgres.NewArticleRepository(db)
@@ -27,12 +28,14 @@ func SetupRoutes(db *sql.DB, validate *validator.Validate, s3Client *s3.Client, 
 		Repo:     authRepo,
 		Validate: validate,
 		Logger:   logger,
+		Config:   cfg,
 	}
 	articleInject := &article.Service{
 		Repo:     articleRepo,
 		Validate: validate,
 		S3Repo:   s3Repo,
 		Logger:   logger,
+		Config:   cfg,
 	}
 
 	authMiddleware := middlewares.AuthMiddleware(logger)

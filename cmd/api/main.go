@@ -8,8 +8,8 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
+	appconfig "article/internal/config"
 	handlers "article/internal/handlers"
 	middlewares "article/internal/middlewares"
 	setup "article/setup"
@@ -64,6 +64,8 @@ func run(logger *slog.Logger) error {
 		return err
 	}
 
+	cfg := appconfig.Load()
+
 	connStr := os.Getenv("DATABASE_URL_CLIENT")
 
 	db, err := sql.Open("postgres", connStr)
@@ -78,16 +80,16 @@ func run(logger *slog.Logger) error {
 		}
 	}()
 
-	db.SetMaxOpenConns(25)
-	db.SetMaxIdleConns(10)
-	db.SetConnMaxLifetime(5 * time.Minute)
-	db.SetConnMaxIdleTime(1 * time.Minute)
+	db.SetMaxOpenConns(cfg.DBMaxOpenConns)
+	db.SetMaxIdleConns(cfg.DBMaxIdleConns)
+	db.SetConnMaxLifetime(cfg.DBConnMaxLifetime)
+	db.SetConnMaxIdleTime(cfg.DBConnMaxIdleTime)
 
 	logger.Info("DB connection pool configured",
-		"max_open_conns", 25,
-		"max_idle_conns", 10,
-		"conn_max_lifetime", 5*time.Minute,
-		"conn_max_idle_time", 1*time.Minute)
+		"max_open_conns", cfg.DBMaxOpenConns,
+		"max_idle_conns", cfg.DBMaxIdleConns,
+		"conn_max_lifetime", cfg.DBConnMaxLifetime,
+		"conn_max_idle_time", cfg.DBConnMaxIdleTime)
 
 	// We need to ping the db connection because sql.Open is Lazy
 	// which means it is just making the db object without opening connection
@@ -98,7 +100,7 @@ func run(logger *slog.Logger) error {
 		return err
 	}
 
-	cfg, err := config.LoadDefaultConfig(
+	awsCfg, err := config.LoadDefaultConfig(
 		ctx,
 		config.WithRegion(os.Getenv("S3_REGION")),
 	)
@@ -107,7 +109,7 @@ func run(logger *slog.Logger) error {
 		return err
 	}
 
-	s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+	s3Client := s3.NewFromConfig(awsCfg, func(o *s3.Options) {
 		o.BaseEndpoint = aws.String(os.Getenv("S3_ENDPOINT"))
 		o.UsePathStyle = true
 	})
@@ -122,7 +124,7 @@ func run(logger *slog.Logger) error {
 
 	validate := validator.New(validator.WithRequiredStructEnabled())
 
-	mux := handlers.SetupRoutes(db, validate, s3Client, s3Uploader, logger)
+	mux := handlers.SetupRoutes(db, validate, s3Client, s3Uploader, logger, cfg)
 
 	// swagger
 	mux.Handle("GET /swagger/", httpSwagger.WrapHandler)
@@ -135,9 +137,9 @@ func run(logger *slog.Logger) error {
 	srv := &http.Server{
 		Addr:         ":" + port,
 		Handler:      middlewares.CORSMiddleware(mux),
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		IdleTimeout:  60 * time.Second,
+		ReadTimeout:  cfg.HTTPReadTimeout,
+		WriteTimeout: cfg.HTTPWriteTimeout,
+		IdleTimeout:  cfg.HTTPIdleTimeout,
 	}
 
 	// we are using a function inside a goroutine to execute srv.ListenAndServe
@@ -155,7 +157,7 @@ func run(logger *slog.Logger) error {
 	<-ctx.Done()
 	logger.Info("Shutting down server...")
 
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cfg.HTTPShutdownTimeout)
 	defer cancel()
 
 	err = srv.Shutdown(shutdownCtx)

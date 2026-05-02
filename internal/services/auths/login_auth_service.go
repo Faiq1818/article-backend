@@ -50,7 +50,7 @@ func (s *Service) Login(req requesttype.LoginRequest) (string, error) {
 		jwt.MapClaims{
 			"user_id": user.ID,
 			"role":    "admin",
-			"exp":     time.Now().Add(24 * time.Hour).Unix(),
+			"exp":     time.Now().Add(time.Duration(s.Config.JWTExpirationHours) * time.Hour).Unix(),
 		})
 
 	token, err := t.SignedString(key)

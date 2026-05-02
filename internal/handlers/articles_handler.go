@@ -15,8 +15,7 @@ func AdminSaveArticle(inject *article.Service) http.HandlerFunc {
 		ctx := r.Context()
 
 		// multipart
-		const maxUploadSize = 20 << 20 // 10 MB
-		err := r.ParseMultipartForm(maxUploadSize)
+		err := r.ParseMultipartForm(inject.Config.MaxUploadSizeBytes)
 		if err != nil {
 			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
 				Message: "Failed to parse multipart payload",
@@ -214,8 +213,7 @@ func AdminPutArticleSlug(inject *article.Service) http.HandlerFunc {
 		}
 
 		// multipart
-		const maxUploadSize = 20 << 20 // 20 MB
-		err := r.ParseMultipartForm(maxUploadSize)
+		err := r.ParseMultipartForm(inject.Config.MaxUploadSizeBytes)
 		if err != nil {
 			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
 				Message: "Failed to parse multipart payload",
