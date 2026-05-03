@@ -1,24 +1,24 @@
-package pkg
+package slug
 
 import (
 	"strings"
 	"testing"
 )
 
-func TestSlugGenerate_NoError(t *testing.T) {
-	slug, err := SlugGenerate("Hello World")
+func TestGenerate_NoError(t *testing.T) {
+	s, err := Generate("Hello World")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	if slug == "" {
+	if s == "" {
 		t.Fatalf("expected non-empty slug")
 	}
 }
 
-func TestSlugGenerate_Format(t *testing.T) {
+func TestGenerate_Format(t *testing.T) {
 	input := "Hello World Golang"
-	slug, err := SlugGenerate(input)
+	s, err := Generate(input)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -27,12 +27,12 @@ func TestSlugGenerate_Format(t *testing.T) {
 	expectedBase := "hello-world-golang"
 
 	// cek prefix slug
-	if !strings.HasPrefix(slug, expectedBase+"-") {
-		t.Fatalf("expected slug to start with %s-, got %s", expectedBase, slug)
+	if !strings.HasPrefix(s, expectedBase+"-") {
+		t.Fatalf("expected slug to start with %s-, got %s", expectedBase, s)
 	}
 
 	// split untuk cek hash
-	parts := strings.Split(slug, "-")
+	parts := strings.Split(s, "-")
 	lastPart := parts[len(parts)-1]
 
 	// hash dipotong 5 karakter
@@ -41,26 +41,26 @@ func TestSlugGenerate_Format(t *testing.T) {
 	}
 }
 
-func TestSlugGenerate_Lowercase(t *testing.T) {
-	slug, err := SlugGenerate("HeLLo WoRLD")
+func TestGenerate_Lowercase(t *testing.T) {
+	s, err := Generate("HeLLo WoRLD")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if slug != strings.ToLower(slug) {
-		t.Fatalf("expected slug to be lowercase, got %s", slug)
+	if s != strings.ToLower(s) {
+		t.Fatalf("expected slug to be lowercase, got %s", s)
 	}
 }
 
-func TestSlugGenerate_Unique(t *testing.T) {
-	slug1, err1 := SlugGenerate("same title")
-	slug2, err2 := SlugGenerate("same title")
+func TestGenerate_Unique(t *testing.T) {
+	s1, err1 := Generate("same title")
+	s2, err2 := Generate("same title")
 
 	if err1 != nil || err2 != nil {
 		t.Fatalf("unexpected error: %v %v", err1, err2)
 	}
 
-	if slug1 == slug2 {
+	if s1 == s2 {
 		t.Fatalf("expected unique slugs, got identical values")
 	}
 }

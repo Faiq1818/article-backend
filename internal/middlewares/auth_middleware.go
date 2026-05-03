@@ -1,13 +1,14 @@
 package middlewares
 
 import (
-	"article/internal/pkg"
 	"context"
 	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
+
+	"article/internal/httpx"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -59,7 +60,7 @@ func AuthMiddleware(logger *slog.Logger) func(http.Handler) http.Handler {
 
 				if err == http.ErrNoCookie {
 					// Cookie not found
-					pkg.JSONResponse(w, http.StatusUnauthorized, pkg.Response{
+					httpx.JSONResponse(w, http.StatusUnauthorized, httpx.Response{
 						Message: "No session cookie found",
 						Success: false,
 					})
@@ -67,7 +68,7 @@ func AuthMiddleware(logger *slog.Logger) func(http.Handler) http.Handler {
 				}
 
 				// Other error
-				pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+				httpx.JSONResponse(w, http.StatusBadRequest, httpx.Response{
 					Message: "Error reading cookie",
 					Success: false,
 				})
@@ -83,7 +84,7 @@ func AuthMiddleware(logger *slog.Logger) func(http.Handler) http.Handler {
 					"error", err,
 				)
 
-				pkg.JSONResponse(w, http.StatusUnauthorized, pkg.Response{
+				httpx.JSONResponse(w, http.StatusUnauthorized, httpx.Response{
 					Message: "Unauthorized: " + err.Error(),
 					Success: false,
 				})

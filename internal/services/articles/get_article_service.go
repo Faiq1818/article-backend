@@ -3,13 +3,14 @@ package article
 import (
 	"database/sql"
 
+	"article/internal/apperror"
 	models "article/internal/models"
-	pkg "article/internal/pkg"
+	"article/internal/pagination"
 )
 
 func (s *Service) GetArticles(page int, limit int) ([]models.Article, models.PaginationMeta, error) {
 	// set default page and limit if too low
-	p := &pkg.Pagination{
+	p := &pagination.Params{
 		Page:  page,
 		Limit: limit,
 	}
@@ -20,7 +21,7 @@ func (s *Service) GetArticles(page int, limit int) ([]models.Article, models.Pag
 	articles, total, err := s.Repo.GetManyArticle(limit, offset)
 	if err != nil {
 		s.Logger.Error("failed get articles", "error", err)
-		return []models.Article{}, models.PaginationMeta{}, &pkg.AppError{
+		return []models.Article{}, models.PaginationMeta{}, &apperror.AppError{
 			Message: "Article not found",
 			Code:    400,
 			Err:     err,
@@ -38,7 +39,7 @@ func (s *Service) GetArticleSlug(slug string) (models.Article, error) {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			s.Logger.Info("Article not found", "error", err)
-			return models.Article{}, &pkg.AppError{
+			return models.Article{}, &apperror.AppError{
 				Message: "Article not found",
 				Code:    400,
 				Err:     err,
@@ -46,7 +47,7 @@ func (s *Service) GetArticleSlug(slug string) (models.Article, error) {
 		}
 
 		s.Logger.Error("Database scan error", "error", err)
-		return models.Article{}, &pkg.AppError{
+		return models.Article{}, &apperror.AppError{
 			Message: "Database error",
 			Code:    500,
 			Err:     err,
@@ -59,7 +60,7 @@ func (s *Service) GetArticleSlug(slug string) (models.Article, error) {
 }
 
 func (s *Service) AdminGetArticlesService(page int, limit int) ([]models.Article, models.PaginationMeta, error) {
-	p := &pkg.Pagination{
+	p := &pagination.Params{
 		Page:  page,
 		Limit: limit,
 	}
@@ -70,7 +71,7 @@ func (s *Service) AdminGetArticlesService(page int, limit int) ([]models.Article
 	articles, total, err := s.Repo.AdminGetManyArticle(p.Limit, offset)
 	if err != nil {
 		s.Logger.Error("failed get articles", "error", err)
-		return []models.Article{}, models.PaginationMeta{}, &pkg.AppError{
+		return []models.Article{}, models.PaginationMeta{}, &apperror.AppError{
 			Message: "Article not found",
 			Code:    400,
 			Err:     err,

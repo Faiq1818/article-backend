@@ -5,7 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
-	pkg "article/internal/pkg"
+	"article/internal/apperror"
+	"article/internal/httpx"
+	"article/internal/imageutil"
 	requesttype "article/internal/request_type"
 	article "article/internal/services/articles"
 )
@@ -17,7 +19,7 @@ func AdminSaveArticle(inject *article.Service) http.HandlerFunc {
 		// multipart
 		err := r.ParseMultipartForm(inject.Config.MaxUploadSizeBytes)
 		if err != nil {
-			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+			httpx.JSONResponse(w, http.StatusBadRequest, httpx.Response{
 				Message: "Failed to parse multipart payload",
 				Success: false,
 			})
@@ -26,7 +28,7 @@ func AdminSaveArticle(inject *article.Service) http.HandlerFunc {
 
 		file, header, err := r.FormFile("image")
 		if err != nil {
-			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+			httpx.JSONResponse(w, http.StatusBadRequest, httpx.Response{
 				Message: "Invalid limit parameter",
 				Success: false,
 			})
@@ -45,10 +47,10 @@ func AdminSaveArticle(inject *article.Service) http.HandlerFunc {
 		// validate body
 		err = inject.Validate.Struct(req)
 		if err != nil {
-			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+			httpx.JSONResponse(w, http.StatusBadRequest, httpx.Response{
 				Message: "Validation error",
 				Success: false,
-				Data:    pkg.FormatValidationError(err),
+				Data:    httpx.FormatValidationError(err),
 			})
 			return
 		}
@@ -56,7 +58,7 @@ func AdminSaveArticle(inject *article.Service) http.HandlerFunc {
 		// make dynamic image name extension
 		srcFile, err := req.Image.Open()
 		if err != nil {
-			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+			httpx.JSONResponse(w, http.StatusBadRequest, httpx.Response{
 				Message: "Failed to open file",
 				Success: false,
 			})
@@ -65,9 +67,9 @@ func AdminSaveArticle(inject *article.Service) http.HandlerFunc {
 		defer func() { _ = srcFile.Close() }()
 
 		// detect image extension
-		ext, err := pkg.DetectImageExtension(srcFile)
+		ext, err := imageutil.DetectExtension(srcFile)
 		if err != nil {
-			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+			httpx.JSONResponse(w, http.StatusBadRequest, httpx.Response{
 				Message: "File must be an image (.jpg, .jpeg, .png, .webp, .gif)",
 				Success: false,
 			})
@@ -77,9 +79,9 @@ func AdminSaveArticle(inject *article.Service) http.HandlerFunc {
 		// bussiness logic
 		err = inject.SaveArticle(ctx, req, ext)
 		if err != nil {
-			var appErr *pkg.AppError
+			var appErr *apperror.AppError
 			if errors.As(err, &appErr) {
-				pkg.JSONResponse(w, appErr.Code, pkg.Response{
+				httpx.JSONResponse(w, appErr.Code, httpx.Response{
 					Message: appErr.Message,
 					Success: false,
 				})
@@ -87,7 +89,7 @@ func AdminSaveArticle(inject *article.Service) http.HandlerFunc {
 			}
 
 			// fallback unknown error
-			pkg.JSONResponse(w, http.StatusInternalServerError, pkg.Response{
+			httpx.JSONResponse(w, http.StatusInternalServerError, httpx.Response{
 				Message: "internal server error",
 				Success: false,
 			})
@@ -95,7 +97,7 @@ func AdminSaveArticle(inject *article.Service) http.HandlerFunc {
 		}
 
 		// success response
-		pkg.JSONResponse(w, http.StatusOK, pkg.Response{
+		httpx.JSONResponse(w, http.StatusOK, httpx.Response{
 			Message: "Article created successfully",
 			Success: true,
 		})
@@ -110,7 +112,7 @@ func GetArticles(inject *article.Service) http.HandlerFunc {
 		// convert limit and page params to integer
 		limit, err := strconv.Atoi(queryParams.Get("limit"))
 		if err != nil {
-			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+			httpx.JSONResponse(w, http.StatusBadRequest, httpx.Response{
 				Message: "Invalid limit parameter",
 				Success: false,
 			})
@@ -119,7 +121,7 @@ func GetArticles(inject *article.Service) http.HandlerFunc {
 
 		page, err := strconv.Atoi(queryParams.Get("page"))
 		if err != nil || page < 1 {
-			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+			httpx.JSONResponse(w, http.StatusBadRequest, httpx.Response{
 				Message: "Invalid page parameter",
 				Success: false,
 			})
@@ -129,9 +131,9 @@ func GetArticles(inject *article.Service) http.HandlerFunc {
 		// bussiness logic
 		articles, meta, err := inject.GetArticles(page, limit)
 		if err != nil {
-			var appErr *pkg.AppError
+			var appErr *apperror.AppError
 			if errors.As(err, &appErr) {
-				pkg.JSONResponse(w, appErr.Code, pkg.Response{
+				httpx.JSONResponse(w, appErr.Code, httpx.Response{
 					Message: appErr.Message,
 					Success: false,
 				})
@@ -139,7 +141,7 @@ func GetArticles(inject *article.Service) http.HandlerFunc {
 			}
 
 			// fallback unknown error
-			pkg.JSONResponse(w, http.StatusInternalServerError, pkg.Response{
+			httpx.JSONResponse(w, http.StatusInternalServerError, httpx.Response{
 				Message: "internal server error",
 				Success: false,
 			})
@@ -147,7 +149,7 @@ func GetArticles(inject *article.Service) http.HandlerFunc {
 		}
 
 		// success response
-		pkg.JSONResponse(w, http.StatusOK, pkg.Response{
+		httpx.JSONResponse(w, http.StatusOK, httpx.Response{
 			Message: "Article retrieved successfully",
 			Success: true,
 			Data: map[string]any{
@@ -163,7 +165,7 @@ func GetArticleSlug(inject *article.Service) http.HandlerFunc {
 		// get slug
 		slug := r.PathValue("slug")
 		if slug == "" {
-			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+			httpx.JSONResponse(w, http.StatusBadRequest, httpx.Response{
 				Message: "Article slug is required",
 				Success: false,
 			})
@@ -173,9 +175,9 @@ func GetArticleSlug(inject *article.Service) http.HandlerFunc {
 		// bussiness logic
 		articles, err := inject.GetArticleSlug(slug)
 		if err != nil {
-			var appErr *pkg.AppError
+			var appErr *apperror.AppError
 			if errors.As(err, &appErr) {
-				pkg.JSONResponse(w, appErr.Code, pkg.Response{
+				httpx.JSONResponse(w, appErr.Code, httpx.Response{
 					Message: appErr.Message,
 					Success: false,
 				})
@@ -183,7 +185,7 @@ func GetArticleSlug(inject *article.Service) http.HandlerFunc {
 			}
 
 			// fallback unknown error
-			pkg.JSONResponse(w, http.StatusInternalServerError, pkg.Response{
+			httpx.JSONResponse(w, http.StatusInternalServerError, httpx.Response{
 				Message: "internal server error",
 				Success: false,
 			})
@@ -191,7 +193,7 @@ func GetArticleSlug(inject *article.Service) http.HandlerFunc {
 		}
 
 		// success response
-		pkg.JSONResponse(w, http.StatusOK, pkg.Response{
+		httpx.JSONResponse(w, http.StatusOK, httpx.Response{
 			Message: "Article retrieved successfully",
 			Success: true,
 			Data:    articles,
@@ -205,7 +207,7 @@ func AdminPutArticleSlug(inject *article.Service) http.HandlerFunc {
 		// get slug
 		oldSlug := r.PathValue("slug")
 		if oldSlug == "" {
-			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+			httpx.JSONResponse(w, http.StatusBadRequest, httpx.Response{
 				Message: "Article slug is required",
 				Success: false,
 			})
@@ -215,7 +217,7 @@ func AdminPutArticleSlug(inject *article.Service) http.HandlerFunc {
 		// multipart
 		err := r.ParseMultipartForm(inject.Config.MaxUploadSizeBytes)
 		if err != nil {
-			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+			httpx.JSONResponse(w, http.StatusBadRequest, httpx.Response{
 				Message: "Failed to parse multipart payload",
 				Success: false,
 			})
@@ -228,7 +230,7 @@ func AdminPutArticleSlug(inject *article.Service) http.HandlerFunc {
 			if errors.Is(err, http.ErrMissingFile) {
 				header = nil
 			} else {
-				pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+				httpx.JSONResponse(w, http.StatusBadRequest, httpx.Response{
 					Message: "Image file is invalid",
 					Success: false,
 				})
@@ -249,10 +251,10 @@ func AdminPutArticleSlug(inject *article.Service) http.HandlerFunc {
 		// validate body
 		err = inject.Validate.Struct(req)
 		if err != nil {
-			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+			httpx.JSONResponse(w, http.StatusBadRequest, httpx.Response{
 				Message: "Validation error",
 				Success: false,
-				Data:    pkg.FormatValidationError(err),
+				Data:    httpx.FormatValidationError(err),
 			})
 			return
 		}
@@ -262,7 +264,7 @@ func AdminPutArticleSlug(inject *article.Service) http.HandlerFunc {
 			// make dynamic image name extension
 			srcFile, err := req.Image.Open()
 			if err != nil {
-				pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+				httpx.JSONResponse(w, http.StatusBadRequest, httpx.Response{
 					Message: "Failed to open file",
 					Success: false,
 				})
@@ -271,10 +273,10 @@ func AdminPutArticleSlug(inject *article.Service) http.HandlerFunc {
 			defer func() { _ = srcFile.Close() }()
 
 			// detect image extension
-			detectedExt, err := pkg.DetectImageExtension(file)
+			detectedExt, err := imageutil.DetectExtension(file)
 			ext = &detectedExt
 			if err != nil {
-				pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+				httpx.JSONResponse(w, http.StatusBadRequest, httpx.Response{
 					Message: "File must be an image (.jpg, .jpeg, .png, .webp, .gif)",
 					Success: false,
 				})
@@ -288,9 +290,9 @@ func AdminPutArticleSlug(inject *article.Service) http.HandlerFunc {
 		// bussiness logic
 		err = inject.PutArticle(ctx, req, ext, oldSlug)
 		if err != nil {
-			var appErr *pkg.AppError
+			var appErr *apperror.AppError
 			if errors.As(err, &appErr) {
-				pkg.JSONResponse(w, appErr.Code, pkg.Response{
+				httpx.JSONResponse(w, appErr.Code, httpx.Response{
 					Message: appErr.Message,
 					Success: false,
 				})
@@ -298,7 +300,7 @@ func AdminPutArticleSlug(inject *article.Service) http.HandlerFunc {
 			}
 
 			// fallback unknown error
-			pkg.JSONResponse(w, http.StatusInternalServerError, pkg.Response{
+			httpx.JSONResponse(w, http.StatusInternalServerError, httpx.Response{
 				Message: "internal server error",
 				Success: false,
 			})
@@ -306,7 +308,7 @@ func AdminPutArticleSlug(inject *article.Service) http.HandlerFunc {
 		}
 
 		// success response
-		pkg.JSONResponse(w, http.StatusOK, pkg.Response{
+		httpx.JSONResponse(w, http.StatusOK, httpx.Response{
 			Message: "Article updated successfully",
 			Success: true,
 		})
@@ -321,7 +323,7 @@ func AdminGetArticles(inject *article.Service) http.HandlerFunc {
 		// convert limit and page params to integer
 		limit, err := strconv.Atoi(queryParams.Get("limit"))
 		if err != nil {
-			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+			httpx.JSONResponse(w, http.StatusBadRequest, httpx.Response{
 				Message: "Invalid limit parameter",
 				Success: false,
 			})
@@ -330,7 +332,7 @@ func AdminGetArticles(inject *article.Service) http.HandlerFunc {
 
 		page, err := strconv.Atoi(queryParams.Get("page"))
 		if err != nil || page < 1 {
-			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+			httpx.JSONResponse(w, http.StatusBadRequest, httpx.Response{
 				Message: "Invalid page parameter",
 				Success: false,
 			})
@@ -340,9 +342,9 @@ func AdminGetArticles(inject *article.Service) http.HandlerFunc {
 		// bussiness logic
 		articles, meta, err := inject.AdminGetArticlesService(page, limit)
 		if err != nil {
-			var appErr *pkg.AppError
+			var appErr *apperror.AppError
 			if errors.As(err, &appErr) {
-				pkg.JSONResponse(w, appErr.Code, pkg.Response{
+				httpx.JSONResponse(w, appErr.Code, httpx.Response{
 					Message: appErr.Message,
 					Success: false,
 				})
@@ -350,7 +352,7 @@ func AdminGetArticles(inject *article.Service) http.HandlerFunc {
 			}
 
 			// fallback unknown error
-			pkg.JSONResponse(w, http.StatusInternalServerError, pkg.Response{
+			httpx.JSONResponse(w, http.StatusInternalServerError, httpx.Response{
 				Message: "internal server error",
 				Success: false,
 			})
@@ -358,7 +360,7 @@ func AdminGetArticles(inject *article.Service) http.HandlerFunc {
 		}
 
 		// success response
-		pkg.JSONResponse(w, http.StatusOK, pkg.Response{
+		httpx.JSONResponse(w, http.StatusOK, httpx.Response{
 			Message: "Article retrieved successfully",
 			Success: true,
 			Data: map[string]any{
@@ -373,7 +375,7 @@ func AdminDeleteArticleSlug(inject *article.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		slug := r.PathValue("slug")
 		if slug == "" {
-			pkg.JSONResponse(w, http.StatusBadRequest, pkg.Response{
+			httpx.JSONResponse(w, http.StatusBadRequest, httpx.Response{
 				Message: "Article slug is required",
 				Success: false,
 			})
@@ -382,23 +384,23 @@ func AdminDeleteArticleSlug(inject *article.Service) http.HandlerFunc {
 
 		err := inject.DeleteArticle(slug)
 		if err != nil {
-			var appErr *pkg.AppError
+			var appErr *apperror.AppError
 			if errors.As(err, &appErr) {
-				pkg.JSONResponse(w, appErr.Code, pkg.Response{
+				httpx.JSONResponse(w, appErr.Code, httpx.Response{
 					Message: appErr.Message,
 					Success: false,
 				})
 				return
 			}
 
-			pkg.JSONResponse(w, http.StatusInternalServerError, pkg.Response{
+			httpx.JSONResponse(w, http.StatusInternalServerError, httpx.Response{
 				Message: "internal server error",
 				Success: false,
 			})
 			return
 		}
 
-		pkg.JSONResponse(w, http.StatusOK, pkg.Response{
+		httpx.JSONResponse(w, http.StatusOK, httpx.Response{
 			Message: "Article successfully deleted",
 			Success: true,
 		})

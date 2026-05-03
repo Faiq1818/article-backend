@@ -1,4 +1,4 @@
-package pkg
+package hashutil
 
 import (
 	"crypto/rand"
@@ -15,5 +15,5 @@ func RandomHash() (string, error) {
 	}
 	hash := sha256.Sum256(randomBytes)
 
-	return string(hex.EncodeToString(hash[:])), nil
+	return hex.EncodeToString(hash[:]), nil
 }

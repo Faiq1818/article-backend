@@ -1,4 +1,4 @@
-package pkg
+package imageutil
 
 import (
 	"errors"
@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func DetectImageExtension(file multipart.File) (string, error) {
+func DetectExtension(file multipart.File) (string, error) {
 	buf := make([]byte, 512)
 
 	n, err := file.Read(buf)

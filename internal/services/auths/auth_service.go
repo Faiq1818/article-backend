@@ -1,7 +1,7 @@
 package auths
 
 import (
-	pkg "article/internal/pkg"
+	"article/internal/apperror"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -10,7 +10,7 @@ import (
 func (s *Service) CheckUserAuthorization(userInfo jwt.MapClaims) (string, error) {
 	userIDStr, ok := userInfo["user_id"].(string)
 	if !ok {
-		return "", &pkg.AppError{
+		return "", &apperror.AppError{
 			Message: "Invalid user_id",
 			Code:    400,
 		}
@@ -18,7 +18,7 @@ func (s *Service) CheckUserAuthorization(userInfo jwt.MapClaims) (string, error)
 
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
-		return "", &pkg.AppError{
+		return "", &apperror.AppError{
 			Message: "Invalid UUID",
 			Code:    400,
 			Err:     err,
@@ -28,7 +28,7 @@ func (s *Service) CheckUserAuthorization(userInfo jwt.MapClaims) (string, error)
 	exist, err := s.Repo.CheckUserId(userID)
 	if err != nil {
 		s.Logger.Error("Database error", "err", err)
-		return "", &pkg.AppError{
+		return "", &apperror.AppError{
 			Message: "Database error",
 			Code:    500,
 			Err:     err,
@@ -36,7 +36,7 @@ func (s *Service) CheckUserAuthorization(userInfo jwt.MapClaims) (string, error)
 	}
 
 	if !exist {
-		return "", &pkg.AppError{
+		return "", &apperror.AppError{
 			Message: "User is not exist",
 			Code:    403,
 			Err:     err,

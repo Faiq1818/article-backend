@@ -1,11 +1,12 @@
-package pkg
+package postgres
 
 import (
-	"github.com/lib/pq"
 	"net/http"
+
+	"github.com/lib/pq"
 )
 
-func ParsePostgresError(err error) (int, string) {
+func ParseError(err error) (int, string) {
 	if pqErr, ok := err.(*pq.Error); ok {
 		switch pqErr.Code {
 		case "23505": // unique_violation

@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	pkg "article/internal/pkg"
+	"article/internal/apperror"
 	requesttype "article/internal/request_type"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -20,14 +20,14 @@ func (s *Service) Login(req requesttype.LoginRequest) (string, error) {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			log.Printf("No user: %v", err)
-			return "", &pkg.AppError{
+			return "", &apperror.AppError{
 				Message: "User not found",
 				Code:    400,
 				Err:     err,
 			}
 		}
 		log.Printf("Database scan error: %v", err)
-		return "", &pkg.AppError{
+		return "", &apperror.AppError{
 			Message: "Database error",
 			Code:    500,
 			Err:     err,
@@ -37,7 +37,7 @@ func (s *Service) Login(req requesttype.LoginRequest) (string, error) {
 	// check and compare password
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	if err != nil {
-		return "", &pkg.AppError{
+		return "", &apperror.AppError{
 			Message: "Incorrect password",
 			Code:    400,
 			Err:     err,
@@ -56,7 +56,7 @@ func (s *Service) Login(req requesttype.LoginRequest) (string, error) {
 	token, err := t.SignedString(key)
 	if err != nil {
 		fmt.Println(err)
-		return "", &pkg.AppError{
+		return "", &apperror.AppError{
 			Message: "Failed to generate token",
 			Code:    500,
 			Err:     err,

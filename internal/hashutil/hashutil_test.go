@@ -1,4 +1,4 @@
-package pkg
+package hashutil
 
 import (
 	"testing"

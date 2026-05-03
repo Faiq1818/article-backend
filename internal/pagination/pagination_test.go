@@ -1,35 +1,35 @@
-package pkg
+package pagination
 
 import (
 	"article/internal/models"
 	"testing"
 )
 
-func TestPagination_Normalize(t *testing.T) {
+func TestParams_Normalize(t *testing.T) {
 	tests := []struct {
 		name     string
-		input    Pagination
-		expected Pagination
+		input    Params
+		expected Params
 	}{
 		{
 			name:     "valid values",
-			input:    Pagination{Page: 2, Limit: 5},
-			expected: Pagination{Page: 2, Limit: 5},
+			input:    Params{Page: 2, Limit: 5},
+			expected: Params{Page: 2, Limit: 5},
 		},
 		{
 			name:     "page less than 1",
-			input:    Pagination{Page: 0, Limit: 5},
-			expected: Pagination{Page: 1, Limit: 5},
+			input:    Params{Page: 0, Limit: 5},
+			expected: Params{Page: 1, Limit: 5},
 		},
 		{
 			name:     "limit less or equal 0",
-			input:    Pagination{Page: 2, Limit: 0},
-			expected: Pagination{Page: 2, Limit: 10},
+			input:    Params{Page: 2, Limit: 0},
+			expected: Params{Page: 2, Limit: 10},
 		},
 		{
 			name:     "both invalid",
-			input:    Pagination{Page: 0, Limit: -1},
-			expected: Pagination{Page: 1, Limit: 10},
+			input:    Params{Page: 0, Limit: -1},
+			expected: Params{Page: 1, Limit: 10},
 		},
 	}
 
@@ -49,25 +49,25 @@ func TestPagination_Normalize(t *testing.T) {
 	}
 }
 
-func TestPagination_MakeOffset(t *testing.T) {
+func TestParams_MakeOffset(t *testing.T) {
 	tests := []struct {
 		name     string
-		input    Pagination
+		input    Params
 		expected int
 	}{
 		{
 			name:     "page 1",
-			input:    Pagination{Page: 1, Limit: 10},
+			input:    Params{Page: 1, Limit: 10},
 			expected: 0,
 		},
 		{
 			name:     "page 2",
-			input:    Pagination{Page: 2, Limit: 10},
+			input:    Params{Page: 2, Limit: 10},
 			expected: 10,
 		},
 		{
 			name:     "page 3",
-			input:    Pagination{Page: 3, Limit: 5},
+			input:    Params{Page: 3, Limit: 5},
 			expected: 10,
 		},
 	}
@@ -83,16 +83,16 @@ func TestPagination_MakeOffset(t *testing.T) {
 	}
 }
 
-func TestPagination_MakeMeta(t *testing.T) {
+func TestParams_MakeMeta(t *testing.T) {
 	tests := []struct {
 		name     string
-		input    Pagination
+		input    Params
 		total    int
 		expected models.PaginationMeta
 	}{
 		{
 			name:  "first page",
-			input: Pagination{Page: 1, Limit: 10},
+			input: Params{Page: 1, Limit: 10},
 			total: 25,
 			expected: models.PaginationMeta{
 				CurrentPage: 1,
@@ -105,7 +105,7 @@ func TestPagination_MakeMeta(t *testing.T) {
 		},
 		{
 			name:  "middle page",
-			input: Pagination{Page: 2, Limit: 10},
+			input: Params{Page: 2, Limit: 10},
 			total: 25,
 			expected: models.PaginationMeta{
 				CurrentPage: 2,
@@ -118,7 +118,7 @@ func TestPagination_MakeMeta(t *testing.T) {
 		},
 		{
 			name:  "last page",
-			input: Pagination{Page: 3, Limit: 10},
+			input: Params{Page: 3, Limit: 10},
 			total: 25,
 			expected: models.PaginationMeta{
 				CurrentPage: 3,
@@ -131,7 +131,7 @@ func TestPagination_MakeMeta(t *testing.T) {
 		},
 		{
 			name:  "single page",
-			input: Pagination{Page: 1, Limit: 10},
+			input: Params{Page: 1, Limit: 10},
 			total: 5,
 			expected: models.PaginationMeta{
 				CurrentPage: 1,
