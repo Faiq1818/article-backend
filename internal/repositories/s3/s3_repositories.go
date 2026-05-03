@@ -16,10 +16,10 @@ import (
 
 type S3Repository struct {
 	S3Client   *s3.Client
-	S3Uploader *manager.Uploader
+	S3Uploader *manager.Uploader //nolint:staticcheck
 }
 
-func NewS3Repository(s3Client *s3.Client, s3Uploader *manager.Uploader) *S3Repository {
+func NewS3Repository(s3Client *s3.Client, s3Uploader *manager.Uploader) *S3Repository { //nolint:staticcheck
 	return &S3Repository{S3Client: s3Client, S3Uploader: s3Uploader}
 }
 
@@ -35,7 +35,7 @@ func (actor S3Repository) UploadObject(ctx context.Context, key string, fileBody
 		Body:              fileBody,
 		ChecksumAlgorithm: types.ChecksumAlgorithmSha256,
 	}
-	output, err := actor.S3Uploader.Upload(ctx, input)
+	output, err := actor.S3Uploader.Upload(ctx, input) //nolint:staticcheck
 	if err != nil {
 		var noBucket *types.NoSuchBucket
 		if errors.As(err, &noBucket) {

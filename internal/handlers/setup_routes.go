@@ -17,7 +17,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func SetupRoutes(db *sql.DB, validate *validator.Validate, s3Client *s3.Client, s3Uploader *manager.Uploader, logger *slog.Logger, cfg *appconfig.Config) *http.ServeMux {
+func SetupRoutes(db *sql.DB, validate *validator.Validate, s3Client *s3.Client, s3Uploader *manager.Uploader, logger *slog.Logger, cfg *appconfig.Config) *http.ServeMux { //nolint:staticcheck
 	// Repository db initiate
 	authRepo := postgres.NewAuthRepository(db)
 	articleRepo := postgres.NewArticleRepository(db)

@@ -120,7 +120,7 @@ func run(logger *slog.Logger) error {
 		return err
 	}
 
-	s3Uploader := manager.NewUploader(s3Client)
+	s3Uploader := manager.NewUploader(s3Client) //nolint:staticcheck
 
 	validate := validator.New(validator.WithRequiredStructEnabled())
 
