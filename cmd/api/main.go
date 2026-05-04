@@ -60,8 +60,7 @@ func run(logger *slog.Logger) error {
 
 	err := godotenv.Load()
 	if err != nil {
-		logger.Error("Get env failed", "error", err)
-		return err
+		logger.Warn(".env not loaded, using OS env", "error", err)
 	}
 
 	cfg := appconfig.Load()
@@ -145,17 +144,23 @@ func run(logger *slog.Logger) error {
 	// we are using a function inside a goroutine to execute srv.ListenAndServe
 	// so the main thread only waits for a graceful shutdown signal from the
 	// srv.ListenAndServe running in the other goroutine thread
+	serverErr := make(chan error, 1)
 	go func() {
 		logger.Info("Server starting on port " + port)
 
 		err := srv.ListenAndServe()
 		if err != nil && err != http.ErrServerClosed {
-			logger.Error("Server failed", "error", err)
+			serverErr <- err
 		}
 	}()
 
-	<-ctx.Done()
-	logger.Info("Shutting down server...")
+	select {
+	case err := <-serverErr:
+		logger.Error("Server failed to start", "error", err)
+		return err
+	case <-ctx.Done():
+		logger.Info("Shutting down server...")
+	}
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), cfg.HTTPShutdownTimeout)
 	defer cancel()
@@ -163,6 +168,7 @@ func run(logger *slog.Logger) error {
 	err = srv.Shutdown(shutdownCtx)
 	if err != nil {
 		logger.Error("Server shutdown failed", "error", err)
+		return err
 	}
 
 	logger.Info("Server stopped gracefully")
